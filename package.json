@@ -1,0 +1,56 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "embed-builder",
+    "version": "1.0.0",
+    "description": "Discord embed builder created with discord.js",
+    "main": "./dist/index.js",
+    "type": "module",
+    "private": true,
+    "author": "reimima <reimima0916@gmail.com>",
+    "license": "MIT",
+    "homepage": "https://github.com/reimima/EmbedBuilder#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/reimima/EmbedBuilder.git"
+    },
+    "bugs": {
+        "url": "https://github.com/reimima/EmbedBuilder/issues"
+    },
+    "scripts": {
+        "build": "node ./build.js",
+        "build:watch": "yarn build --watch",
+        "start": "node --enable-source-maps ./dist/index.js",
+        "dev": "tsx ./src/index.ts",
+        "dev:watch": "nodemon",
+        "lint": "eslint --fix . & prettier --write \"./**/*.{ts,tsx,js,json}\"",
+        "clean": "rimraf ./dist"
+    },
+    "dependencies": {
+        "discord.js": "14.15.0-dev.1703160224-520d6f64d",
+        "dotenv": "^16.3.1",
+        "glob": "^10.3.10",
+        "log4js": "^6.9.1",
+        "tslib": "^2.6.2"
+    },
+    "devDependencies": {
+        "@types/eslint": "^8.56.0",
+        "@types/node": "^20.10.5",
+        "@typescript-eslint/eslint-plugin": "^6.16.0",
+        "@typescript-eslint/parser": "^6.16.0",
+        "esbuild": "^0.19.10",
+        "eslint": "^8.56.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-import-resolver-typescript": "^3.6.1",
+        "eslint-plugin-import": "^2.29.1",
+        "nodemon": "^3.0.2",
+        "prettier": "^3.1.1",
+        "pretty-bytes": "^6.1.1",
+        "rimraf": "^5.0.5",
+        "tsx": "^4.7.0",
+        "typescript": "^5.3.3"
+    },
+    "packageManager": "pnpm@8.13.1",
+    "engines": {
+        "node": ">=20.10.0"
+    }
+}
