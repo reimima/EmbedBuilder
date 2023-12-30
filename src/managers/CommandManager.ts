@@ -1,3 +1,8 @@
+import type {
+    ApplicationCommand,
+    ApplicationCommandManager,
+    GuildApplicationCommandManager,
+} from 'discord.js';
 import { Collection } from 'discord.js';
 import { config } from 'dotenv';
 
@@ -17,12 +22,26 @@ export class CommandManager extends Collection<string, Command> {
             this.set(command.data.name, command),
         );
 
-    public readonly subscribe = async (): Promise<void> => {
-        const devGuild = this.client.guilds.cache.get(process.env['DEV_GUILD_ID'] ?? '');
+    public readonly subscribe = async (mode: 'dev' | 'global'): Promise<void> => {
+        let commands: ApplicationCommandManager | GuildApplicationCommandManager | undefined,
+            subscribed: Collection<string, ApplicationCommand>;
 
-        if (!devGuild) throw new Error('Development guild was not found.');
+        switch (mode) {
+            case 'dev': {
+                const devGuild = this.client.guilds.cache.get(process.env['DEV_GUILD_ID'] ?? '');
 
-        const subscribed = (await devGuild.commands.fetch()) ?? new Collection();
+                if (!devGuild) throw new Error('Development guild was not found.');
+
+                commands = devGuild.commands;
+                subscribed = (await commands.fetch()) ?? new Collection();
+                break;
+            }
+
+            case 'global':
+                commands = this.client.application?.commands;
+                subscribed = (await commands?.fetch()) ?? new Collection();
+                break;
+        }
 
         const diffAdded = this.filter(c => !subscribed.find(s => s.name === c.data.name));
         const diffRemoved = subscribed.filter(s => !this.find(c => s.name === c.data.name));
@@ -31,11 +50,11 @@ export class CommandManager extends Collection<string, Command> {
         );
 
         await Promise.allSettled([
-            ...diffAdded.mapValues(add => devGuild.commands.create(add.data)),
-            ...diffRemoved.mapValues(remove => devGuild.commands.delete(remove.id)),
+            ...diffAdded.mapValues(add => commands?.create(add.data)),
+            ...diffRemoved.mapValues(remove => commands?.delete(remove.id)),
             ...diff.mapValues(change => {
                 const id = subscribed.find(s => s.name === change.data.name)?.id;
-                if (id) return devGuild.commands.edit(id, change.data);
+                if (id) return commands?.edit(id, change.data);
                 return;
             }),
         ]);
