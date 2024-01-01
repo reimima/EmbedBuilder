@@ -38,7 +38,11 @@ const ctx = await context({
                         (a, b) => a + b.bytes,
                         0,
                     );
-                    log(`Build complete with ${prettyBytes(size, { locale: 'ja' })}`);
+                    log(
+                        `Build complete with ${prettyBytes(size, {
+                            locale: 'ja',
+                        })}`,
+                    );
                 });
             },
         },

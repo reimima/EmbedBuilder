@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import log4js from 'log4js';
 
 import { CommandManager } from './managers';
-import type { Event } from './structures';
+import type { ExEvent } from './structures';
 import { directoryName, loadModules } from './utils';
 
 config();
@@ -11,10 +11,15 @@ config();
 // eslint-disable-next-line import/no-named-as-default-member
 const { configure, getLogger } = log4js;
 
-export class Client extends DJSClient {
-    public readonly logger = getLogger('Client');
+export class ExClient extends DJSClient {
+    public readonly logger = getLogger('ExClient');
 
     public readonly commandManager: CommandManager;
+
+    public readonly storage = {
+        devGuildId: process.env['DEV_GUILD_ID'] ?? '',
+        errorLoggingChannelId: process.env['ERROR_LOGGING_CHANNEL_ID'] ?? '',
+    };
 
     public constructor() {
         super({
@@ -33,7 +38,11 @@ export class Client extends DJSClient {
                 },
             },
             categories: {
-                default: { appenders: ['console'], level: 'info', enableCallStack: true },
+                default: {
+                    appenders: ['console'],
+                    level: 'info',
+                    enableCallStack: true,
+                },
             },
         });
 
@@ -45,7 +54,9 @@ export class Client extends DJSClient {
 
         try {
             (
-                await loadModules<Event>(this, [`${directoryName(import.meta.url)}/events/**/*.ts`])
+                await loadModules<ExEvent>(this, [
+                    `${directoryName(import.meta.url)}/events/**/*.ts`,
+                ])
             ).forEach(event =>
                 this[event.data.once ? 'once' : 'on'](event.data.name, (...args) =>
                     event.run(...args),

@@ -6,19 +6,19 @@ import type {
 import { Collection } from 'discord.js';
 import { config } from 'dotenv';
 
-import type { Client } from '../Client';
-import type { Command } from '../structures';
+import type { ExClient } from '../ExClient';
+import type { ExCommand } from '../structures';
 import { loadModules } from '../utils';
 
 config();
 
-export class CommandManager extends Collection<string, Command> {
-    public constructor(private readonly client: Client) {
+export class CommandManager extends Collection<string, ExCommand> {
+    public constructor(private readonly client: ExClient) {
         super();
     }
 
     public readonly registerAll = async (paths: string[]) =>
-        (await loadModules<Command>(this.client, paths)).map(command =>
+        (await loadModules<ExCommand>(this.client, paths)).map(command =>
             this.set(command.data.name, command),
         );
 
@@ -28,7 +28,7 @@ export class CommandManager extends Collection<string, Command> {
 
         switch (mode) {
             case 'dev': {
-                const devGuild = this.client.guilds.cache.get(process.env['DEV_GUILD_ID'] ?? '');
+                const devGuild = this.client.guilds.cache.get(this.client.storage.devGuildId);
 
                 if (!devGuild) throw new Error('Development guild was not found.');
 

@@ -3,11 +3,11 @@ import { fileURLToPath } from 'node:url';
 
 import { glob } from 'glob';
 
-import type { Client } from '../Client';
+import type { ExClient } from '../ExClient';
 
 export const directoryName = (url: string): string => dirname(fileURLToPath(url));
 
-export const loadModules = async <T>(client: Client, paths: string[]): Promise<Awaited<T>[]> => {
+export const loadModules = async <T>(client: ExClient, paths: string[]): Promise<Awaited<T>[]> => {
     const files: string[] = [];
 
     await Promise.all(
@@ -23,7 +23,7 @@ export const loadModules = async <T>(client: Client, paths: string[]): Promise<A
     return Promise.all(
         files.map(file =>
             import(file).then(
-                (module: { default: new (client: Client) => Promise<T> }) =>
+                (module: { default: new (client: ExClient) => Promise<T> }) =>
                     new module.default(client),
             ),
         ),

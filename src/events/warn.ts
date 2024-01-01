@@ -1,9 +1,7 @@
 import { DEvent } from '../decorators';
-import { Event } from '../structures';
+import { ExEvent } from '../structures';
 
 @DEvent({ name: 'warn', once: false })
-export default class extends Event {
-    public readonly run = (message: string): void => {
-        this.logger.warn('DJS Warning -', message);
-    };
+export default class extends ExEvent {
+    public readonly run = (message: string): void => this.logger.warn('DJS Warning -', message);
 }

@@ -1,11 +1,11 @@
 import type { ClientEvents } from 'discord.js';
 
 import { Structure } from './Structure';
-import type { Client } from '../Client';
+import type { ExClient } from '../ExClient';
 
-export abstract class Event<E extends keyof ClientEvents = keyof ClientEvents> extends Structure {
+export abstract class ExEvent<E extends keyof ClientEvents = keyof ClientEvents> extends Structure {
     public constructor(
-        protected readonly client: Client,
+        protected readonly client: ExClient,
         public readonly data: Readonly<{
             name: E;
             once: boolean;
@@ -17,4 +17,4 @@ export abstract class Event<E extends keyof ClientEvents = keyof ClientEvents> e
     public abstract run(...args: ClientEvents[E]): unknown;
 }
 
-export type EventConstructor = new (...args: ConstructorParameters<typeof Event>) => Event;
+export type ExEventConstructor = new (...args: ConstructorParameters<typeof ExEvent>) => ExEvent;

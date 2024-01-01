@@ -1,11 +1,11 @@
 import type { ApplicationCommandData, Interaction } from 'discord.js';
 
 import { Structure } from './Structure';
-import type { Client } from '../Client';
+import type { ExClient } from '../ExClient';
 
-export abstract class Command extends Structure {
+export abstract class ExCommand extends Structure {
     public constructor(
-        protected readonly client: Client,
+        protected readonly client: ExClient,
         public readonly data: ApplicationCommandData,
     ) {
         super(data.name);
@@ -14,4 +14,6 @@ export abstract class Command extends Structure {
     public abstract run(interaction: Interaction): Promise<unknown>;
 }
 
-export type CommandConstructor = new (...args: ConstructorParameters<typeof Command>) => Command;
+export type ExCommandConstructor = new (
+    ...args: ConstructorParameters<typeof ExCommand>
+) => ExCommand;

@@ -1,13 +1,13 @@
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 import { DCommand } from '../decorators';
-import { Command } from '../structures';
+import { ExCommand } from '../structures';
 
 @DCommand({
     name: 'ping',
     description: 'Pong!',
 })
-export default class extends Command {
+export default class extends ExCommand {
     public readonly run = async (interaction: ChatInputCommandInteraction): Promise<void> => {
         await interaction.deferReply();
 

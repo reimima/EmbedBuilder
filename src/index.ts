@@ -1,7 +1,7 @@
-import { Client } from './Client';
+import { ExClient } from './ExClient';
 import { NoStackError } from './utils';
 
-const client = new Client();
+const client = new ExClient();
 
 await client.build().catch(e => client.logger.error('Client build error: ', e));
 

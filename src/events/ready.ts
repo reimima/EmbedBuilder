@@ -1,10 +1,10 @@
 import type { Client } from 'discord.js';
 
 import { DEvent } from '../decorators';
-import { Event } from '../structures';
+import { ExEvent } from '../structures';
 
 @DEvent({ name: 'ready', once: true })
-export default class extends Event {
+export default class extends ExEvent {
     public readonly run = async (client: Client<true>): Promise<void> => {
         this.logger.info('Succesfully logged in and is Ready.');
         this.logger.trace(
