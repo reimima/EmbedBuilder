@@ -15,7 +15,7 @@ export default class extends ExEvent {
 
         this.logger.info('Starting to subscribe commands to Discord Server.');
         await this.client.commandManager
-            .subscribe('dev')
+            .subscribe()
             .then(() => this.logger.info('Succesfully subscribed commands to Discord Server.'))
             .catch(e => this.logger.error('There was an error subscribing -', e));
     };

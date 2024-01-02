@@ -1,9 +1,5 @@
-import type {
-    ApplicationCommand,
-    ApplicationCommandManager,
-    GuildApplicationCommandManager,
-} from 'discord.js';
-import { Collection } from 'discord.js';
+import type { ApplicationCommand } from 'discord.js';
+import { ApplicationCommandManager, Collection, GuildApplicationCommandManager } from 'discord.js';
 import { config } from 'dotenv';
 
 import type { ExClient } from '../ExClient';
@@ -22,26 +18,17 @@ export class CommandManager extends Collection<string, ExCommand> {
             this.set(command.data.name, command),
         );
 
-    public readonly subscribe = async (mode: 'dev' | 'global'): Promise<void> => {
-        let commands: ApplicationCommandManager | GuildApplicationCommandManager | undefined,
-            subscribed: Collection<string, ApplicationCommand>;
+    public readonly subscribe = async (dev?: boolean): Promise<void> => {
+        const commands = dev
+            ? this.client.guilds.cache.get(this.client.storage.devGuildId)?.commands
+            : this.client.application?.commands;
 
-        switch (mode) {
-            case 'dev': {
-                const devGuild = this.client.guilds.cache.get(this.client.storage.devGuildId);
-
-                if (!devGuild) throw new Error('Development guild was not found.');
-
-                commands = devGuild.commands;
-                subscribed = (await commands.fetch()) ?? new Collection();
-                break;
-            }
-
-            case 'global':
-                commands = this.client.application?.commands;
-                subscribed = (await commands?.fetch()) ?? new Collection();
-                break;
-        }
+        const subscribed: Collection<string, ApplicationCommand> =
+            commands instanceof GuildApplicationCommandManager
+                ? await commands.fetch()
+                : commands instanceof ApplicationCommandManager
+                  ? await commands.fetch()
+                  : new Collection();
 
         const diffAdded = this.filter(c => !subscribed.find(s => s.name === c.data.name));
         const diffRemoved = subscribed.filter(s => !this.find(c => s.name === c.data.name));
