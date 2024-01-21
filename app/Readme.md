@@ -1,1 +1,1 @@
-# EmbedBuilder as webapp
+# EmbedBuilder as windows app

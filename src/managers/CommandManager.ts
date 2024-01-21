@@ -18,7 +18,7 @@ export class CommandManager extends Collection<string, ExCommand> {
             this.set(command.data.name, command),
         );
 
-    public readonly subscribe = async (dev?: boolean): Promise<void> => {
+    public readonly subscribe = async (dev = true): Promise<void> => {
         const commands = dev
             ? this.client.guilds.cache.get(this.client.storage.devGuildId)?.commands
             : this.client.application?.commands;

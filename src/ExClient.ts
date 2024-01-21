@@ -18,7 +18,6 @@ export class ExClient extends DJSClient {
 
     public readonly storage = {
         devGuildId: process.env['DEV_GUILD_ID'] ?? '',
-        errorLoggingChannelId: process.env['ERROR_LOGGING_CHANNEL_ID'] ?? '',
     };
 
     public constructor() {

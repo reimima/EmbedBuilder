@@ -1,7 +1,7 @@
 import { inspect } from 'util';
 
 import { Colors } from 'discord.js';
-import type { BaseMessageOptions, DiscordAPIError, Interaction, TextChannel } from 'discord.js';
+import type { BaseMessageOptions, DiscordAPIError, Interaction } from 'discord.js';
 
 import { DEvent } from '../decorators';
 import { ExEvent } from '../structures';
@@ -9,6 +9,8 @@ import { ExEvent } from '../structures';
 @DEvent({ name: 'interactionCreate', once: false })
 export default class extends ExEvent {
     public readonly run = async (interaction: Interaction): Promise<void> => {
+        if (!interaction.inCachedGuild()) return;
+
         try {
             if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand())
                 await this.client.commandManager.get(interaction.commandName)?.run(interaction);
@@ -37,12 +39,6 @@ export default class extends ExEvent {
                     await interaction.reply(message).catch(err => this.logger.error(err));
                 }
             }
-
-            await (
-                this.client.channels.cache.get(
-                    this.client.storage.errorLoggingChannelId,
-                ) as TextChannel
-            ).send(message);
         }
     };
 }

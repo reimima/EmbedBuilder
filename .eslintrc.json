@@ -30,6 +30,10 @@
         "@typescript-eslint/consistent-type-imports": "error",
         "@typescript-eslint/method-signature-style": "error",
         "@typescript-eslint/no-invalid-void-type": "off",
+        "@typescript-eslint/no-misused-promises": [
+            "error",
+            { "checksVoidReturn": false }
+        ],
         "@typescript-eslint/no-unnecessary-qualifier": "error",
         "@typescript-eslint/no-use-before-define": ["error", "nofunc"],
         "@typescript-eslint/no-useless-empty-export": "error",
