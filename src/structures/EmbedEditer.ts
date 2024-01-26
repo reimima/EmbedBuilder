@@ -13,8 +13,9 @@ import {
     StringSelectMenuBuilder,
 } from 'discord.js';
 
-const officialUrl = 'https://discord.com',
-    attachmentUrl = 'attachment://officialIcon.png';
+export const officialUrl = 'https://discord.com';
+
+const attachmentUrl = 'attachment://officialIcon.png';
 
 const inlineFieldData: APIEmbedField = {
         name: 'Inline field title',
@@ -45,20 +46,21 @@ export class EmbedEditer extends EmbedBuilder {
     private readonly fields: APIEmbedField[] = fields;
 
     public constructor(
-        private readonly interaction: ChatInputCommandInteraction,
+        public readonly interaction: ChatInputCommandInteraction,
         raw = defaultEmbed.addFields(fields),
     ) {
         super(raw.toJSON());
     }
 
     public readonly init = async (
+        override: EmbedBuilder | this | undefined = undefined,
         options = {
             appendedComponents: true,
             appendedFiles: true,
         },
-    ): Promise<InteractionResponse> =>
-        await this.interaction.reply({
-            embeds: [this],
+    ): Promise<InteractionResponse | Message> =>
+        await this.interaction[override ? 'editReply' : 'reply']({
+            embeds: [override ? override : this],
             components: options.appendedComponents ? this.buildComponents() : [],
             files: options.appendedFiles
                 ? [
@@ -68,9 +70,6 @@ export class EmbedEditer extends EmbedBuilder {
                   ]
                 : [],
         });
-
-    public readonly update = async (): Promise<Message> =>
-        await this.interaction.editReply({ embeds: [this] });
 
     public readonly buildComponents = (): [
         ActionRowBuilder<StringSelectMenuBuilder>,
