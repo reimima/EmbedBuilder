@@ -256,7 +256,14 @@ export class EditorSwitcher {
 
             image: new ModalBuilder(),
 
-            footer: new ModalBuilder(),
+            footer: new ModalBuilder()
+                .setCustomId('footer-modal')
+                .setTitle('Edit Embed Footer')
+                .addComponents(
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder()),
+
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder()),
+                ),
         };
 
         return switcher[this.value as keyof typeof switcher];
