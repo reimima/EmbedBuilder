@@ -1,10 +1,4 @@
-import {
-    ActionRowBuilder,
-    EmbedBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-} from 'discord.js';
+import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import type {
     ColorResolvable,
     ModalSubmitInteraction,
@@ -12,61 +6,59 @@ import type {
 } from 'discord.js';
 
 import { type EmbedEditer, officialUrl } from './EmbedEditer';
-import { delayDelete, isImage } from '../utils';
+import { NoticeMessages } from './NoticeMessages';
+import { checkImageFormat } from '../utils';
 
 // eslint-disable-next-line no-useless-escape
 const urlRegx = /^https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+$/;
 
 export class EditorSwitcher {
-    private readonly modal: ModalBuilder;
+    private readonly modal!: ModalBuilder;
 
     private readonly modalCustomIds: string[] = [
         'color-modal',
         'title-modal',
         'title-url-modal',
         'author-modal',
+        'description-modal',
     ];
+
+    private readonly noticeMessages: NoticeMessages;
 
     public constructor(
         private readonly interaction: StringSelectMenuInteraction,
         private readonly embed: EmbedEditer,
         private readonly value: string,
     ) {
-        this.modal = this.createModal();
+        if (value !== 'timestamp') this.modal = this.createModal();
+
+        this.noticeMessages = new NoticeMessages(value);
     }
 
     public readonly init = () => ({
         color: async (): Promise<void> => {
-            await this.#init();
+            await this.interaction.showModal(this.modal);
 
             await this.createModalSubmitter()
                 .then(async collected => {
                     const content = collected.fields.getTextInputValue('color-modal-content');
 
                     if (!/^#[0-9A-F]{6}$/i.test(content))
-                        return await collected
-                            .reply({
-                                embeds: [
-                                    new EmbedBuilder()
-                                        .setColor('Red')
-                                        .setTitle('Invalid hex color')
-                                        .setDescription(
-                                            'Hex colors must be specified according to the rules.',
-                                        ),
-                                ],
-                            })
-                            .then(response => delayDelete([response]));
+                        return await this.noticeMessages.createInvaild(collected, {
+                            title: 'Invalid hex color',
+                            description: 'Hex colors must be specified according to the rules.',
+                        });
 
                     this.embed.setColor(content as ColorResolvable);
                     await this.embed.init(this.embed);
 
-                    return await this.succesfully(collected);
+                    return await this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
         title: async (): Promise<void> => {
-            await this.#init();
+            await this.interaction.showModal(this.modal);
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -75,43 +67,34 @@ export class EditorSwitcher {
                     this.embed.setTitle(content);
                     await this.embed.init(this.embed);
 
-                    return await this.succesfully(collected);
+                    return await this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
         titleURL: async (): Promise<void> => {
-            await this.#init();
+            await this.interaction.showModal(this.modal);
 
             await this.createModalSubmitter()
                 .then(async collected => {
                     const content = collected.fields.getTextInputValue('title-url-modal-content');
 
-                    // eslint-disable-next-line no-useless-escape
                     if (!urlRegx.test(content))
-                        return await collected
-                            .reply({
-                                embeds: [
-                                    new EmbedBuilder()
-                                        .setColor('Red')
-                                        .setTitle('Invalid URL')
-                                        .setDescription(
-                                            'URL must be specified according to the rules.',
-                                        ),
-                                ],
-                            })
-                            .then(response => delayDelete([response]));
+                        return await this.noticeMessages.createInvaild(collected, {
+                            title: 'Invalid URL',
+                            description: 'URL must be specified according to the rules.',
+                        });
 
                     this.embed.setURL(content);
                     await this.embed.init(this.embed);
 
-                    return await this.succesfully(collected);
+                    return await this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
         author: async (): Promise<void> => {
-            await this.#init();
+            await this.interaction.showModal(this.modal);
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -123,32 +106,16 @@ export class EditorSwitcher {
                             collected.fields.getTextInputValue('author-modal-content_3');
 
                     if (!urlRegx.test(content_icon_url || content_name_url))
-                        return await collected
-                            .reply({
-                                embeds: [
-                                    new EmbedBuilder()
-                                        .setColor('Red')
-                                        .setTitle('Invalid URL')
-                                        .setDescription(
-                                            'URL must be specified according to the rules.',
-                                        ),
-                                ],
-                            })
-                            .then(response => delayDelete([response]));
+                        return await this.noticeMessages.createInvaild(collected, {
+                            title: 'Invalid URL',
+                            description: 'URL must be specified according to the rules.',
+                        });
 
-                    if (!(await isImage(content_icon_url)))
-                        await collected.channel
-                            ?.send({
-                                embeds: [
-                                    new EmbedBuilder()
-                                        .setColor('Yellow')
-                                        .setTitle('Warning')
-                                        .setDescription(
-                                            "This url isn't image url. \nIf this message is incorrect, please ignore it.",
-                                        ),
-                                ],
-                            })
-                            .then(response => delayDelete([response]));
+                    if (!checkImageFormat(content_icon_url, ['png', 'jpg', 'webp', 'gif']))
+                        await this.noticeMessages.createWarning(collected, {
+                            title: 'Unsupported format',
+                            description: "Discord doesn't support this image format.",
+                        });
 
                     this.embed.setAuthor({
                         name: content_name,
@@ -157,18 +124,36 @@ export class EditorSwitcher {
                     });
                     await this.embed.init(this.embed);
 
-                    return await this.succesfully(collected);
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
-        description: async (): Promise<void> => {},
+        description: async (): Promise<void> => {
+            await this.interaction.showModal(this.modal);
+
+            await this.createModalSubmitter()
+                .then(async collected => {
+                    const content = collected.fields.getTextInputValue('description-modal-content');
+
+                    this.embed.setDescription(content);
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
+                })
+                .catch(() => {});
+        },
 
         thumbnail: async (): Promise<void> => {},
 
         image: async (): Promise<void> => {},
 
-        timestamp: async (): Promise<void> => {},
+        timestamp: async (): Promise<NodeJS.Timeout> => {
+            this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
+            await this.embed.init(this.embed);
+
+            return this.noticeMessages.createSuccesfully(this.interaction);
+        },
 
         footer: async (): Promise<void> => {},
     });
@@ -253,13 +238,23 @@ export class EditorSwitcher {
                     ),
                 ),
 
-            description: new ModalBuilder(),
+            description: new ModalBuilder()
+                .setCustomId('description-modal')
+                .setTitle('Edit Embed Description')
+                .addComponents(
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('description-modal-content')
+                            .setLabel('Description')
+                            .setPlaceholder('Some Description')
+                            .setRequired(true)
+                            .setStyle(TextInputStyle.Paragraph),
+                    ),
+                ),
 
             thumbnail: new ModalBuilder(),
 
             image: new ModalBuilder(),
-
-            timestamp: new ModalBuilder(),
 
             footer: new ModalBuilder(),
         };
@@ -272,23 +267,4 @@ export class EditorSwitcher {
             filter: interaction => this.modalCustomIds.includes(interaction.customId),
             time: 60_000,
         });
-
-    private readonly succesfully = async (
-        collected: ModalSubmitInteraction,
-    ): Promise<NodeJS.Timeout> =>
-        await collected
-            .reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor('Green')
-                        .setTitle('Succeeded')
-                        .setDescription(`Succesfully change embed ${this.value}.`),
-                ],
-            })
-            .then(response => delayDelete([response]));
-
-    readonly #init = async (): Promise<void> => {
-        await this.interaction.showModal(this.modal);
-        await this.embed.init(this.embed);
-    };
 }

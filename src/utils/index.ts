@@ -1,6 +1,6 @@
-export * from './delayDelete';
+export * from './checkImageFormat';
 
-export * from './isImage';
+export * from './delayDelete';
 
 export * from './loadModules';
 
