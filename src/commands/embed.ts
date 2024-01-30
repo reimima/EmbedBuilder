@@ -49,7 +49,7 @@ export default class extends ExCommand {
                     .setColor('Red')
                     .setTitle('An unexpected error has occurred')
                     .setDescription('Please retry.'),
-                { appendedComponents: false, appendedFiles: false },
+                { components: false, files: false },
             );
         }
     };

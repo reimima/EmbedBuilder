@@ -40,10 +40,10 @@ const defaultEmbed = new EmbedBuilder()
     .setThumbnail(attachmentUrl)
     .setImage(attachmentUrl)
     .setTimestamp()
-    .setFooter({ text: 'Some footer text', iconURL: attachmentUrl });
+    .setFooter({ text: 'Some text', iconURL: attachmentUrl });
 
 export class EmbedEditer extends EmbedBuilder {
-    private readonly fields: APIEmbedField[] = fields;
+    public readonly fields: APIEmbedField[] = fields;
 
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
@@ -55,14 +55,14 @@ export class EmbedEditer extends EmbedBuilder {
     public readonly init = async (
         override: EmbedBuilder | this | undefined = undefined,
         options = {
-            appendedComponents: true,
-            appendedFiles: true,
+            components: true,
+            files: true,
         },
     ): Promise<InteractionResponse | Message> =>
         await this.interaction[override ? 'editReply' : 'reply']({
             embeds: [override ? override : this],
-            components: options.appendedComponents ? this.buildComponents() : [],
-            files: options.appendedFiles
+            components: options.components ? this.buildComponents() : [],
+            files: options.files
                 ? [
                       new AttachmentBuilder('./src/images/officialIcon.png', {
                           name: 'officialIcon.png',
@@ -94,6 +94,7 @@ export class EmbedEditer extends EmbedBuilder {
                         value: 'description',
                     },
                     { label: 'thumbnail', description: 'Set the thumbnail.', value: 'thumbnail' },
+                    { label: 'fields', description: 'Set the fields.', value: 'fields' },
                     { label: 'image', description: 'Set the image.', value: 'image' },
                     { label: 'timestamp', description: 'Toggle timestamp.', value: 'timestamp' },
                     {

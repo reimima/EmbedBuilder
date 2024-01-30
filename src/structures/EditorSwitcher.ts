@@ -21,6 +21,9 @@ export class EditorSwitcher {
         'title-url-modal',
         'author-modal',
         'description-modal',
+        'thumbnail-modal',
+        'image-modal',
+        'footer-modal',
     ];
 
     private readonly noticeMessages: NoticeMessages;
@@ -100,22 +103,14 @@ export class EditorSwitcher {
                 .then(async collected => {
                     const content_name =
                             collected.fields.getTextInputValue('author-modal-content_1'),
-                        content_icon_url =
-                            collected.fields.getTextInputValue('author-modal-content_2'),
+                        content_icon_url = await this.imageVerify(
+                            collected,
+                            'author-modal-content_2',
+                        ),
                         content_name_url =
                             collected.fields.getTextInputValue('author-modal-content_3');
 
-                    if (!urlRegx.test(content_icon_url || content_name_url))
-                        return await this.noticeMessages.createInvaild(collected, {
-                            title: 'Invalid URL',
-                            description: 'URL must be specified according to the rules.',
-                        });
-
-                    if (!checkImageFormat(content_icon_url, ['png', 'jpg', 'webp', 'gif']))
-                        await this.noticeMessages.createWarning(collected, {
-                            title: 'Unsupported format',
-                            description: "Discord doesn't support this image format.",
-                        });
+                    if (typeof content_icon_url !== 'string') return;
 
                     this.embed.setAuthor({
                         name: content_name,
@@ -144,9 +139,41 @@ export class EditorSwitcher {
                 .catch(() => {});
         },
 
-        thumbnail: async (): Promise<void> => {},
+        thumbnail: async (): Promise<void> => {
+            await this.interaction.showModal(this.modal);
 
-        image: async (): Promise<void> => {},
+            await this.createModalSubmitter()
+                .then(async collected => {
+                    const content = await this.imageVerify(collected, 'thumbnail-modal-content');
+
+                    if (typeof content !== 'string') return;
+
+                    this.embed.setThumbnail(content);
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
+                })
+                .catch(() => {});
+        },
+
+        fields: async (): Promise<void> => {},
+
+        image: async (): Promise<void> => {
+            await this.interaction.showModal(this.modal);
+
+            await this.createModalSubmitter()
+                .then(async collected => {
+                    const content = await this.imageVerify(collected, 'image-modal-content');
+
+                    if (typeof content !== 'string') return;
+
+                    this.embed.setImage(content);
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
+                })
+                .catch(() => {});
+        },
 
         timestamp: async (): Promise<NodeJS.Timeout> => {
             this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
@@ -155,7 +182,27 @@ export class EditorSwitcher {
             return this.noticeMessages.createSuccesfully(this.interaction);
         },
 
-        footer: async (): Promise<void> => {},
+        footer: async (): Promise<void> => {
+            await this.interaction.showModal(this.modal);
+
+            await this.createModalSubmitter()
+                .then(async collected => {
+                    const content_text =
+                            collected.fields.getTextInputValue('footer-modal-content_1'),
+                        content_icon_url = await this.imageVerify(
+                            collected,
+                            'footer-modal-content_2',
+                        );
+
+                    if (typeof content_icon_url !== 'string') return;
+
+                    this.embed.setFooter({ text: content_text, iconURL: content_icon_url });
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
+                })
+                .catch(() => {});
+        },
     });
 
     private readonly createModal = (): ModalBuilder => {
@@ -252,17 +299,56 @@ export class EditorSwitcher {
                     ),
                 ),
 
-            thumbnail: new ModalBuilder(),
+            thumbnail: new ModalBuilder()
+                .setCustomId('thumbnail-modal')
+                .setTitle('Edit Embed Thumbnail')
+                .addComponents(
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('thumbnail-modal-content')
+                            .setLabel('Thumbnail URL')
+                            .setPlaceholder('https://')
+                            .setRequired(true)
+                            .setStyle(TextInputStyle.Paragraph),
+                    ),
+                ),
 
-            image: new ModalBuilder(),
+            image: new ModalBuilder()
+                .setCustomId('image-modal')
+                .setTitle('Edit Embed Image')
+                .addComponents(
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('image-modal-content')
+                            .setLabel('Image URL')
+                            .setPlaceholder('https://')
+                            .setRequired(true)
+                            .setStyle(TextInputStyle.Paragraph),
+                    ),
+                ),
 
             footer: new ModalBuilder()
                 .setCustomId('footer-modal')
                 .setTitle('Edit Embed Footer')
                 .addComponents(
-                    new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder()),
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('footer-modal-content_1')
+                            .setLabel('Footer Text')
+                            .setMaxLength(2048)
+                            .setPlaceholder('Some text')
+                            .setRequired(true)
+                            .setStyle(TextInputStyle.Paragraph),
+                    ),
 
-                    new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder()),
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(
+                        new TextInputBuilder()
+                            .setCustomId('footer-modal-content_2')
+                            .setLabel('Footer Icon URL')
+                            .setPlaceholder('https://')
+                            .setRequired(true)
+                            .setStyle(TextInputStyle.Paragraph),
+                    ),
                 ),
         };
 
@@ -274,4 +360,25 @@ export class EditorSwitcher {
             filter: interaction => this.modalCustomIds.includes(interaction.customId),
             time: 60_000,
         });
+
+    private readonly imageVerify = async (
+        collected: ModalSubmitInteraction,
+        customId: string,
+    ): Promise<NodeJS.Timeout | string> => {
+        const content = collected.fields.getTextInputValue(customId);
+
+        if (!urlRegx.test(content))
+            return await this.noticeMessages.createInvaild(collected, {
+                title: 'Invalid URL',
+                description: 'URL must be specified according to the rules.',
+            });
+
+        if (!checkImageFormat(content, ['png', 'jpg', 'webp', 'gif']))
+            await this.noticeMessages.createWarning(collected, {
+                title: 'Unsupported format',
+                description: "Discord doesn't support this image format.",
+            });
+
+        return content;
+    };
 }
