@@ -1,11 +1,14 @@
-import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import type {
     ColorResolvable,
+    InteractionResponse,
+    Message,
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js';
+import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 
-import { type EmbedEditer, officialUrl } from './EmbedEditer';
+import type { EmbedEditer } from './EmbedEditer';
+import { officialUrl } from './EmbedEditer';
 import { NoticeMessages } from './NoticeMessages';
 import { checkImageFormat } from '../utils';
 
@@ -33,14 +36,14 @@ export class EditorSwitcher {
         private readonly embed: EmbedEditer,
         private readonly value: string,
     ) {
-        if (value !== 'timestamp') this.modal = this.createModal();
+        if (value !== ('timestamp' || 'fields')) this.modal = this.createModal();
 
-        this.noticeMessages = new NoticeMessages(value);
+        this.noticeMessages = new NoticeMessages(embed, value);
     }
 
     public readonly init = () => ({
         color: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -61,7 +64,7 @@ export class EditorSwitcher {
         },
 
         title: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -76,7 +79,7 @@ export class EditorSwitcher {
         },
 
         titleURL: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -97,7 +100,7 @@ export class EditorSwitcher {
         },
 
         author: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -125,7 +128,7 @@ export class EditorSwitcher {
         },
 
         description: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -140,7 +143,7 @@ export class EditorSwitcher {
         },
 
         thumbnail: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -156,10 +159,14 @@ export class EditorSwitcher {
                 .catch(() => {});
         },
 
-        fields: async (): Promise<void> => {},
+        fields: async (): Promise<void> => {
+            await this.interaction.update({ content: null });
+
+            await this.embed.init(this.embed, { components: true, files: true, fields: true });
+        },
 
         image: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -175,7 +182,7 @@ export class EditorSwitcher {
                 .catch(() => {});
         },
 
-        timestamp: async (): Promise<NodeJS.Timeout> => {
+        timestamp: async (): Promise<InteractionResponse | Message> => {
             this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
             await this.embed.init(this.embed);
 
@@ -183,7 +190,7 @@ export class EditorSwitcher {
         },
 
         footer: async (): Promise<void> => {
-            await this.interaction.showModal(this.modal);
+            await this._init();
 
             await this.createModalSubmitter()
                 .then(async collected => {
@@ -355,6 +362,11 @@ export class EditorSwitcher {
         return switcher[this.value as keyof typeof switcher];
     };
 
+    private readonly _init = async (): Promise<void> => {
+        await this.interaction.showModal(this.modal);
+        await this.embed.init(this.embed);
+    };
+
     private readonly createModalSubmitter = async (): Promise<ModalSubmitInteraction> =>
         await this.interaction.awaitModalSubmit({
             filter: interaction => this.modalCustomIds.includes(interaction.customId),
@@ -364,7 +376,7 @@ export class EditorSwitcher {
     private readonly imageVerify = async (
         collected: ModalSubmitInteraction,
         customId: string,
-    ): Promise<NodeJS.Timeout | string> => {
+    ): Promise<InteractionResponse | Message | string> => {
         const content = collected.fields.getTextInputValue(customId);
 
         if (!urlRegx.test(content))

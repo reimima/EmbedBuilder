@@ -43,11 +43,11 @@ const defaultEmbed = new EmbedBuilder()
     .setFooter({ text: 'Some text', iconURL: attachmentUrl });
 
 export class EmbedEditer extends EmbedBuilder {
-    public readonly fields: APIEmbedField[] = fields;
+    public readonly fields: APIEmbedField[] = structuredClone(fields);
 
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
-        raw = defaultEmbed.addFields(fields),
+        raw = defaultEmbed.setFields(fields),
     ) {
         super(raw.toJSON());
     }
@@ -57,11 +57,16 @@ export class EmbedEditer extends EmbedBuilder {
         options = {
             components: true,
             files: true,
+            fields: false,
         },
     ): Promise<InteractionResponse | Message> =>
         await this.interaction[override ? 'editReply' : 'reply']({
             embeds: [override ? override : this],
-            components: options.components ? this.buildComponents() : [],
+            components: options.components
+                ? options.fields
+                    ? this.buildFieldComponents()
+                    : this.buildMainComponents()
+                : [],
             files: options.files
                 ? [
                       new AttachmentBuilder('./src/images/officialIcon.png', {
@@ -71,13 +76,13 @@ export class EmbedEditer extends EmbedBuilder {
                 : [],
         });
 
-    public readonly buildComponents = (): [
+    private readonly buildMainComponents = (): [
         ActionRowBuilder<StringSelectMenuBuilder>,
         ActionRowBuilder<ButtonBuilder>,
     ] => [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId('select')
+                .setCustomId('select-options')
                 .setPlaceholder('Build options')
                 .setOptions(
                     { label: 'color', description: 'Set the color. (HEX)', value: 'color' },
@@ -104,15 +109,52 @@ export class EmbedEditer extends EmbedBuilder {
                     },
                 ),
         ),
+
         new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
                 .setCustomId('submit')
                 .setLabel('✅ Submit')
                 .setStyle(ButtonStyle.Success),
+
             new ButtonBuilder()
                 .setCustomId('cancel')
                 .setLabel('🗑️ Cancel')
                 .setStyle(ButtonStyle.Danger),
+        ),
+    ];
+
+    private readonly buildFieldComponents = (): (
+        | ActionRowBuilder<ButtonBuilder>
+        | ActionRowBuilder<StringSelectMenuBuilder>
+    )[] => [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId('increment')
+                .setLabel('➕ Increment')
+                .setStyle(ButtonStyle.Success),
+
+            new ButtonBuilder()
+                .setCustomId('decrement')
+                .setLabel('➖ Decrement')
+                .setStyle(ButtonStyle.Danger),
+
+            new ButtonBuilder()
+                .setCustomId('back')
+                .setLabel('🔙 Back')
+                .setStyle(ButtonStyle.Secondary),
+        ),
+
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId('select-fields')
+                .setPlaceholder('Number of fields')
+                .setOptions(
+                    this.fields.map((_, i) => ({
+                        label: `${i + 1}`,
+                        description: `Edit number ${i + 1} field.`,
+                        value: `${i}`,
+                    })),
+                ),
         ),
     ];
 }

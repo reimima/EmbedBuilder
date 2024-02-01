@@ -1,11 +1,15 @@
 import type {
+    ButtonInteraction,
+    InteractionResponse,
+    Message,
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
     TextBasedChannel,
 } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 
-import { delayDelete } from '../utils';
+import type { EmbedEditer } from './EmbedEditer';
+import { delayDelete as _delayDelete } from '../utils';
 
 type rawType = {
     title: string;
@@ -13,11 +17,14 @@ type rawType = {
 };
 
 export class NoticeMessages {
-    public constructor(private readonly value: string) {}
+    public constructor(
+        private readonly embed: EmbedEditer,
+        private readonly value?: string,
+    ) {}
 
     public readonly createSuccesfully = async (
         collected: ModalSubmitInteraction | StringSelectMenuInteraction,
-    ): Promise<NodeJS.Timeout> =>
+    ): Promise<InteractionResponse | Message> =>
         await collected
             .reply({
                 embeds: [
@@ -27,12 +34,13 @@ export class NoticeMessages {
                         .setDescription(`Succesfully change embed ${this.value}.`),
                 ],
             })
-            .then(response => delayDelete([response]));
+            .then(response => this.delayDelete([response]));
 
     public readonly createInvaild = async (
-        collected: ModalSubmitInteraction,
+        collected: ButtonInteraction | ModalSubmitInteraction,
         raw: rawType,
-    ): Promise<NodeJS.Timeout> =>
+        fields?: boolean,
+    ): Promise<InteractionResponse | Message> =>
         await collected
             .reply({
                 embeds: [
@@ -42,12 +50,12 @@ export class NoticeMessages {
                         .setDescription(raw.description),
                 ],
             })
-            .then(response => delayDelete([response]));
+            .then(response => this.delayDelete([response], fields));
 
     public readonly createWarning = async (
         collected: ModalSubmitInteraction,
         raw: rawType,
-    ): Promise<NodeJS.Timeout> =>
+    ): Promise<InteractionResponse | Message> =>
         await (collected.channel as TextBasedChannel)
             .send({
                 embeds: [
@@ -57,5 +65,18 @@ export class NoticeMessages {
                         .setDescription(raw.description),
                 ],
             })
-            .then(response => delayDelete([response]));
+            .then(response => this.delayDelete([response]));
+
+    private readonly delayDelete = async (
+        targets: (InteractionResponse | Message)[],
+        fields?: boolean,
+    ): Promise<InteractionResponse | Message> => {
+        _delayDelete(targets);
+
+        return await this.embed.init(this.embed, {
+            components: true,
+            files: true,
+            fields: fields ?? false,
+        });
+    };
 }
