@@ -7,7 +7,11 @@ import { NoticeMessages, Structure } from '../structures';
 export class ButtonManager extends Structure {
     private readonly switcher = {
         submit: async (): Promise<InteractionResponse | Message> =>
-            await this.embed.init(this.embed, { components: false, files: false, fields: false }),
+            await this.embed.init(this.embed, {
+                components: false,
+                files: false,
+                fields: false,
+            }),
 
         cancel: async (): Promise<Message> => await this.interaction.message.delete(),
 

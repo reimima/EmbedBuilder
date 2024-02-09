@@ -45,6 +45,8 @@ const defaultEmbed = new EmbedBuilder()
 export class EmbedEditer extends EmbedBuilder {
     public readonly fields: APIEmbedField[] = structuredClone(fields);
 
+    public readonly selecting = new Map<string, number>();
+
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
         raw = defaultEmbed.setFields(fields),
@@ -151,7 +153,7 @@ export class EmbedEditer extends EmbedBuilder {
                 .setOptions(
                     this.fields.map((_, i) => ({
                         label: `${i + 1}`,
-                        description: `Edit number ${i + 1} field.`,
+                        description: `Edit number of ${i + 1} field.`,
                         value: `${i}`,
                     })),
                 ),

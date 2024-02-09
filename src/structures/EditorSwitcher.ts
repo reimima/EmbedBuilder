@@ -162,7 +162,11 @@ export class EditorSwitcher {
         fields: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
-            await this.embed.init(this.embed, { components: true, files: true, fields: true });
+            await this.embed.init(this.embed, {
+                components: true,
+                files: true,
+                fields: true,
+            });
         },
 
         image: async (): Promise<void> => {
