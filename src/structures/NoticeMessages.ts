@@ -31,7 +31,7 @@ export class NoticeMessages {
                     new EmbedBuilder()
                         .setColor('Green')
                         .setTitle('Succeeded')
-                        .setDescription(`Succesfully change embed ${this.value}.`),
+                        .setDescription(`Succesfully change embed \`${this.value}\`.`),
                 ],
             })
             .then(response => this._delayDelete([response]));

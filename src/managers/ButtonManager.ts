@@ -6,12 +6,19 @@ import { NoticeMessages, Structure } from '../structures';
 
 export class ButtonManager extends Structure {
     private readonly switcher = {
-        submit: async (): Promise<InteractionResponse | Message> =>
-            await this.embed.init(this.embed, {
-                components: false,
-                files: false,
-                fields: false,
-            }),
+        submit: async () => {
+            if (this.submit_type === 'reply')
+                return await this.embed.init(this.embed, {
+                    components: false,
+                    files: false,
+                    fields: false,
+                });
+
+            await this.interaction.message.delete();
+            return await this.interaction.channel?.send({
+                embeds: [new EmbedBuilder(this.embed.data)],
+            });
+        },
 
         cancel: async (): Promise<Message> => await this.interaction.message.delete(),
 
@@ -127,6 +134,7 @@ export class ButtonManager extends Structure {
     public constructor(
         private readonly interaction: ButtonInteraction,
         private readonly embed: EmbedEditer,
+        private readonly submit_type: 'reply' | 'send',
     ) {
         super('ButtonManager');
 
