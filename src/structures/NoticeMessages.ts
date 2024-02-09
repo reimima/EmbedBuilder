@@ -9,7 +9,7 @@ import type {
 import { EmbedBuilder } from 'discord.js';
 
 import type { EmbedEditer } from './EmbedEditer';
-import { delayDelete as _delayDelete } from '../utils';
+import { delayDelete } from '../utils';
 
 type rawType = {
     title: string;
@@ -34,7 +34,7 @@ export class NoticeMessages {
                         .setDescription(`Succesfully change embed ${this.value}.`),
                 ],
             })
-            .then(response => this.delayDelete([response]));
+            .then(response => this._delayDelete([response]));
 
     public readonly createInvaild = async (
         collected: ButtonInteraction | ModalSubmitInteraction,
@@ -50,7 +50,7 @@ export class NoticeMessages {
                         .setDescription(raw.description),
                 ],
             })
-            .then(response => this.delayDelete([response], fields));
+            .then(response => this._delayDelete([response], fields));
 
     public readonly createWarning = async (
         collected: ModalSubmitInteraction,
@@ -65,13 +65,13 @@ export class NoticeMessages {
                         .setDescription(raw.description),
                 ],
             })
-            .then(response => this.delayDelete([response]));
+            .then(response => this._delayDelete([response]));
 
-    private readonly delayDelete = async (
+    private readonly _delayDelete = async (
         targets: (InteractionResponse | Message)[],
         fields?: boolean,
     ): Promise<InteractionResponse | Message> => {
-        _delayDelete(targets);
+        delayDelete(targets);
 
         return await this.embed.init(this.embed, {
             components: true,

@@ -146,6 +146,30 @@ export class EmbedEditer extends EmbedBuilder {
                 .setStyle(ButtonStyle.Secondary),
         ),
 
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId('enabled_all_inline')
+                .setLabel('⏫ Enabled all')
+                .setStyle(ButtonStyle.Success),
+
+            new ButtonBuilder()
+                .setCustomId('enabled_inline')
+                .setLabel('🔼 Enabled')
+                .setStyle(ButtonStyle.Success)
+                .setDisabled(!this.selecting.has(this.interaction.user.id)),
+
+            new ButtonBuilder()
+                .setCustomId('disabled_inline')
+                .setLabel('🔽 Disabled')
+                .setStyle(ButtonStyle.Danger)
+                .setDisabled(!this.selecting.has(this.interaction.user.id)),
+
+            new ButtonBuilder()
+                .setCustomId('disabled_all_inline')
+                .setLabel('⏬ Disabled all')
+                .setStyle(ButtonStyle.Danger),
+        ),
+
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
                 .setCustomId('select-fields')

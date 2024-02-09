@@ -1,5 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
-import type { ButtonInteraction, InteractionResponse, Message } from 'discord.js';
+import type { APIEmbedField, ButtonInteraction, InteractionResponse, Message } from 'discord.js';
 
 import type { EmbedEditer } from '../structures';
 import { NoticeMessages, Structure } from '../structures';
@@ -62,9 +62,63 @@ export class ButtonManager extends Structure {
             });
         },
 
-        back: async (): Promise<void> => {
+        back: async (): Promise<InteractionResponse | Message> => {
             await this.interaction.update({ content: null });
-            await this.embed.init(this.embed);
+
+            this.embed.selecting.delete(this.interaction.user.id);
+            return await this.embed.init(this.embed);
+        },
+
+        enabled_all_inline: async (): Promise<InteractionResponse | Message> => {
+            await this.interaction.update({ content: null });
+
+            this.embed.fields.map(field => (field.inline = true));
+            return await this.embed.init(this.embed, {
+                components: true,
+                files: true,
+                fields: true,
+            });
+        },
+
+        enabled_inline: async (): Promise<InteractionResponse | Message> => {
+            await this.interaction.update({ content: null });
+
+            (
+                this.embed.fields[
+                    Number(this.embed.selecting.get(this.interaction.user.id))
+                ] as APIEmbedField
+            ).inline = true;
+            return await this.embed.init(this.embed, {
+                components: true,
+                files: true,
+                fields: true,
+            });
+        },
+
+        disabled_inline: async (): Promise<InteractionResponse | Message> => {
+            await this.interaction.update({ content: null });
+
+            (
+                this.embed.fields[
+                    Number(this.embed.selecting.get(this.interaction.user.id))
+                ] as APIEmbedField
+            ).inline = false;
+            return await this.embed.init(this.embed, {
+                components: true,
+                files: true,
+                fields: true,
+            });
+        },
+
+        disabled_all_inline: async (): Promise<InteractionResponse | Message> => {
+            await this.interaction.update({ content: null });
+
+            this.embed.fields.map(field => (field.inline = false));
+            return await this.embed.init(this.embed, {
+                components: true,
+                files: true,
+                fields: true,
+            });
         },
     };
 

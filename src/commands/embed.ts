@@ -9,22 +9,19 @@ import { EmbedEditer, ExCommand } from '../structures';
     description: 'Make your own embed!',
 })
 export default class extends ExCommand {
-    private embed!: EmbedEditer;
-
     public readonly run = async (interaction: ChatInputCommandInteraction): Promise<void> => {
-        this.embed = new EmbedEditer(interaction);
-
-        const collector = (await this.embed.init()).createMessageComponentCollector({
-            filter: collected =>
-                (collected.isStringSelectMenu() || collected.isButton()) &&
-                collected.user.id === interaction.user.id,
-        });
+        const embed = new EmbedEditer(interaction),
+            collector = (await embed.init()).createMessageComponentCollector({
+                filter: collected =>
+                    (collected.isStringSelectMenu() || collected.isButton()) &&
+                    collected.user.id === interaction.user.id,
+            });
 
         collector.on('collect', async interaction => {
             if (interaction.isStringSelectMenu()) {
-                await new StringSelectMenuManager(interaction, this.embed).init();
+                await new StringSelectMenuManager(interaction, embed).init();
             } else if (interaction.isButton()) {
-                await new ButtonManager(interaction, this.embed).init();
+                await new ButtonManager(interaction, embed).init();
             }
         });
     };
