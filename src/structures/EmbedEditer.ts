@@ -78,10 +78,9 @@ export class EmbedEditer extends EmbedBuilder {
                 : [],
         });
 
-    private readonly buildMainComponents = (): [
-        ActionRowBuilder<StringSelectMenuBuilder>,
-        ActionRowBuilder<ButtonBuilder>,
-    ] => [
+    private readonly buildMainComponents = (): ActionRowBuilder<
+        ButtonBuilder | StringSelectMenuBuilder
+    >[] => [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
                 .setCustomId('select-options')
