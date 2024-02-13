@@ -49,6 +49,8 @@ export class EmbedEditer extends EmbedBuilder {
 
     public selecting: number | null = null;
 
+    private readonly modeManager: EditorModeManager = new EditorModeManager();
+
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
         raw = defaultEmbed.setFields(fields),
@@ -123,7 +125,7 @@ export class EmbedEditer extends EmbedBuilder {
                 .setStyle(ButtonStyle.Danger),
         ),
 
-        new EditorModeManager().generate(change),
+        this.modeManager.generate(change),
     ];
 
     private readonly buildFieldComponents = (): (
