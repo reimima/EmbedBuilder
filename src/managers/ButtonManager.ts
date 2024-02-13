@@ -6,12 +6,12 @@ import { NoticeMessages, Structure } from '../structures';
 
 export class ButtonManager extends Structure {
     private readonly switcher = {
-        submit: async () => {
+        submit: async (): Promise<InteractionResponse | Message | undefined> => {
             if (this.submit_type === 'reply')
                 return await this.embed.init(this.embed, {
                     components: false,
-                    files: false,
                     fields: false,
+                    change: false,
                 });
 
             await this.interaction.message.delete();
@@ -21,6 +21,10 @@ export class ButtonManager extends Structure {
         },
 
         cancel: async (): Promise<Message> => await this.interaction.message.delete(),
+
+        create_mode: async () => await this.changeMode(),
+
+        delete_mode: async () => await this.changeMode(),
 
         increment: async (): Promise<InteractionResponse | Message> => {
             if (this.embed.fields.length >= 25)
@@ -42,12 +46,12 @@ export class ButtonManager extends Structure {
 
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 
-        decrement: async () => {
+        decrement: async (): Promise<InteractionResponse | Message> => {
             if (this.embed.fields.length <= 1)
                 return this.noticeMessages.createInvaild(
                     this.interaction,
@@ -64,15 +68,15 @@ export class ButtonManager extends Structure {
 
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 
         back: async (): Promise<InteractionResponse | Message> => {
             await this.interaction.update({ content: null });
 
-            this.embed.selecting.delete(this.interaction.user.id);
+            this.embed.selecting = null;
             return await this.embed.init(this.embed);
         },
 
@@ -82,38 +86,30 @@ export class ButtonManager extends Structure {
             this.embed.fields.map(field => (field.inline = true));
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 
         enabled_inline: async (): Promise<InteractionResponse | Message> => {
             await this.interaction.update({ content: null });
 
-            (
-                this.embed.fields[
-                    Number(this.embed.selecting.get(this.interaction.user.id))
-                ] as APIEmbedField
-            ).inline = true;
+            (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = true;
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 
         disabled_inline: async (): Promise<InteractionResponse | Message> => {
             await this.interaction.update({ content: null });
 
-            (
-                this.embed.fields[
-                    Number(this.embed.selecting.get(this.interaction.user.id))
-                ] as APIEmbedField
-            ).inline = false;
+            (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = false;
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 
@@ -123,8 +119,8 @@ export class ButtonManager extends Structure {
             this.embed.fields.map(field => (field.inline = false));
             return await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
     };
@@ -152,8 +148,13 @@ export class ButtonManager extends Structure {
                     .setColor('Red')
                     .setTitle('An unexpected error has occurred')
                     .setDescription('Please retry.'),
-                { components: false, files: false, fields: false },
+                { components: false, fields: false, change: false },
             );
         }
+    };
+
+    private readonly changeMode = async (): Promise<void> => {
+        await this.interaction.update({ content: null });
+        await this.embed.init(this.embed, { components: true, fields: false, change: true });
     };
 }

@@ -164,8 +164,8 @@ export class EditorSwitcher {
 
             await this.embed.init(this.embed, {
                 components: true,
-                files: true,
                 fields: true,
+                change: false,
             });
         },
 

@@ -75,8 +75,8 @@ export class NoticeMessages {
 
         return await this.embed.init(this.embed, {
             components: true,
-            files: true,
             fields: fields ?? false,
+            change: false,
         });
     };
 }

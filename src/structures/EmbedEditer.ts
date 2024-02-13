@@ -13,6 +13,8 @@ import {
     StringSelectMenuBuilder,
 } from 'discord.js';
 
+import { EditorModeManager } from '../managers';
+
 export const officialUrl = 'https://discord.com';
 
 const attachmentUrl = 'attachment://officialIcon.png';
@@ -45,7 +47,7 @@ const defaultEmbed = new EmbedBuilder()
 export class EmbedEditer extends EmbedBuilder {
     public readonly fields: APIEmbedField[] = structuredClone(fields);
 
-    public readonly selecting = new Map<string, number>();
+    public selecting: number | null = null;
 
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
@@ -58,8 +60,8 @@ export class EmbedEditer extends EmbedBuilder {
         override: EmbedBuilder | this | undefined = undefined,
         options = {
             components: true,
-            files: true,
             fields: false,
+            change: false,
         },
     ): Promise<InteractionResponse | Message> =>
         await this.interaction[override ? 'editReply' : 'reply']({
@@ -67,20 +69,18 @@ export class EmbedEditer extends EmbedBuilder {
             components: options.components
                 ? options.fields
                     ? this.buildFieldComponents()
-                    : this.buildMainComponents()
+                    : this.buildMainComponents(options.change)
                 : [],
-            files: options.files
-                ? [
-                      new AttachmentBuilder('./src/images/officialIcon.png', {
-                          name: 'officialIcon.png',
-                      }),
-                  ]
-                : [],
+            files: [
+                new AttachmentBuilder('./src/images/officialIcon.png', {
+                    name: 'officialIcon.png',
+                }),
+            ],
         });
 
-    private readonly buildMainComponents = (): ActionRowBuilder<
-        ButtonBuilder | StringSelectMenuBuilder
-    >[] => [
+    private readonly buildMainComponents = (
+        change = false,
+    ): ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] => [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
                 .setCustomId('select-options')
@@ -122,6 +122,8 @@ export class EmbedEditer extends EmbedBuilder {
                 .setLabel('🗑️ Cancel')
                 .setStyle(ButtonStyle.Danger),
         ),
+
+        new EditorModeManager().generate(change),
     ];
 
     private readonly buildFieldComponents = (): (
@@ -155,13 +157,13 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('enabled_inline')
                 .setLabel('🔼 Enabled')
                 .setStyle(ButtonStyle.Success)
-                .setDisabled(!this.selecting.has(this.interaction.user.id)),
+                .setDisabled(!this.selecting),
 
             new ButtonBuilder()
                 .setCustomId('disabled_inline')
                 .setLabel('🔽 Disabled')
                 .setStyle(ButtonStyle.Danger)
-                .setDisabled(!this.selecting.has(this.interaction.user.id)),
+                .setDisabled(!this.selecting),
 
             new ButtonBuilder()
                 .setCustomId('disabled_all_inline')

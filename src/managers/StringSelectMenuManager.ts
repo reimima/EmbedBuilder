@@ -22,7 +22,7 @@ export class StringSelectMenuManager extends Structure {
         }
     };
 
-    private readonly runSelectOptions = async () => {
+    private readonly runSelectOptions = async (): Promise<void> => {
         const value = this.interaction.values[0] as string,
             switcher = new EditorSwitcher(this.interaction, this.embed, value).init();
 
@@ -36,7 +36,7 @@ export class StringSelectMenuManager extends Structure {
                     .setColor('Red')
                     .setTitle('An unexpected error has occurred')
                     .setDescription('Please retry.'),
-                { components: false, files: false, fields: false },
+                { components: false, fields: false, change: false },
             );
         }
     };
@@ -44,14 +44,13 @@ export class StringSelectMenuManager extends Structure {
     private readonly runSelectFields = async (): Promise<void> => {
         const value = Number(this.interaction.values[0]);
 
-        this.embed.selecting.set(this.interaction.user.id, value);
-
+        this.embed.selecting = value;
         await this.interaction
             .reply({
                 content: `You selected number of \`${value + 1}\` field.`,
             })
             .then(response => delayDelete([response]));
 
-        await this.embed.init(this.embed, { components: true, files: true, fields: true });
+        await this.embed.init(this.embed, { components: true, fields: true, change: false });
     };
 }
