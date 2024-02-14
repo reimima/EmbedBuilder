@@ -3,21 +3,23 @@ import type {
     ChatInputCommandInteraction,
     InteractionResponse,
     Message,
+    StringSelectMenuInteraction,
 } from 'discord.js';
 import {
     ActionRowBuilder,
-    AttachmentBuilder,
     ButtonBuilder,
     ButtonStyle,
     EmbedBuilder,
     StringSelectMenuBuilder,
 } from 'discord.js';
 
+import { NoticeMessages } from './NoticeMessages';
 import { EditorModeManager } from '../managers';
 
 export const officialUrl = 'https://discord.com';
 
-const attachmentUrl = 'attachment://officialIcon.png';
+const iconUrl =
+    'https://cdn.discordapp.com/attachments/1207135928645197854/1207136089404350504/icon.png?ex=65de8c17&is=65cc1717&hm=d33f27c384453db16d233fe0778998c535037541d999b2059f5010ad217df98c&';
 
 const inlineFieldData: APIEmbedField = {
         name: 'Inline field title',
@@ -37,25 +39,39 @@ const defaultEmbed = new EmbedBuilder()
     .setColor('Default')
     .setTitle('Some title')
     .setURL(officialUrl)
-    .setAuthor({ name: 'Some name', iconURL: attachmentUrl, url: officialUrl })
+    .setAuthor({ name: 'Some name', iconURL: iconUrl, url: officialUrl })
     .setDescription('Some description')
-    .setThumbnail(attachmentUrl)
-    .setImage(attachmentUrl)
+    .setThumbnail(iconUrl)
+    .setImage(iconUrl)
     .setTimestamp()
-    .setFooter({ text: 'Some text', iconURL: attachmentUrl });
+    .setFooter({ text: 'Some text', iconURL: iconUrl });
+
+export type ValueType =
+    | 'author'
+    | 'color'
+    | 'description'
+    | 'fields'
+    | 'footer'
+    | 'image'
+    | 'thumbnail'
+    | 'timestamp'
+    | 'title'
+    | 'url';
 
 export class EmbedEditer extends EmbedBuilder {
     public readonly fields: APIEmbedField[] = structuredClone(fields);
 
-    public selecting: number | null = null;
+    public readonly modeManager: EditorModeManager = new EditorModeManager();
 
-    private readonly modeManager: EditorModeManager = new EditorModeManager();
+    private readonly noticeMessages: NoticeMessages = new NoticeMessages(this);
+
+    public selecting: number | null = null;
 
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
         raw = defaultEmbed.setFields(fields),
     ) {
-        super(raw.toJSON());
+        super(raw.data);
     }
 
     public readonly init = async (
@@ -73,12 +89,29 @@ export class EmbedEditer extends EmbedBuilder {
                     ? this.buildFieldComponents()
                     : this.buildMainComponents(options.change)
                 : [],
-            files: [
-                new AttachmentBuilder('./src/images/officialIcon.png', {
-                    name: 'officialIcon.png',
-                }),
-            ],
         });
+
+    public readonly deleteProperty = async (
+        value: ValueType,
+        interaction: StringSelectMenuInteraction,
+    ): Promise<InteractionResponse | Message> => {
+        const length = this.data.fields
+            ? Object.keys(this.data).length - 1
+            : Object.keys(this.data).length;
+
+        if (length < 1)
+            return this.noticeMessages.createInvaild(this.interaction, {
+                title: 'Unexpected operation',
+                description: "Embed elements can't be less than 1.",
+            });
+
+        await interaction.update({ content: null });
+        const data = this.data;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        data[value] = null;
+        return await this.init(new EmbedBuilder(data));
+    };
 
     private readonly buildMainComponents = (
         change = false,
@@ -90,7 +123,7 @@ export class EmbedEditer extends EmbedBuilder {
                 .setOptions(
                     { label: 'color', description: 'Set the color. (HEX)', value: 'color' },
                     { label: 'title', description: 'Set the title.', value: 'title' },
-                    { label: 'titleURL', description: 'Set the title URL.', value: 'titleURL' },
+                    { label: 'titleURL', description: 'Set the title URL.', value: 'url' },
                     {
                         label: 'author',
                         description: 'Set the author. (3 options)',

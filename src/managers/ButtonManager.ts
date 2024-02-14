@@ -73,51 +73,51 @@ export class ButtonManager extends Structure {
             });
         },
 
-        back: async (): Promise<InteractionResponse | Message> => {
+        back: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
             this.embed.selecting = null;
-            return await this.embed.init(this.embed);
+            await this.embed.init(this.embed);
         },
 
-        enabled_all_inline: async (): Promise<InteractionResponse | Message> => {
+        enabled_all_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
             this.embed.fields.map(field => (field.inline = true));
-            return await this.embed.init(this.embed, {
+            await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
                 change: false,
             });
         },
 
-        enabled_inline: async (): Promise<InteractionResponse | Message> => {
+        enabled_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
             (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = true;
-            return await this.embed.init(this.embed, {
+            await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
                 change: false,
             });
         },
 
-        disabled_inline: async (): Promise<InteractionResponse | Message> => {
+        disabled_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
             (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = false;
-            return await this.embed.init(this.embed, {
+            await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
                 change: false,
             });
         },
 
-        disabled_all_inline: async (): Promise<InteractionResponse | Message> => {
+        disabled_all_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
             this.embed.fields.map(field => (field.inline = false));
-            return await this.embed.init(this.embed, {
+            await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
                 change: false,

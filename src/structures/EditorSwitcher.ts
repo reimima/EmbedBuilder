@@ -7,7 +7,7 @@ import type {
 } from 'discord.js';
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 
-import type { EmbedEditer } from './EmbedEditer';
+import type { EmbedEditer, ValueType } from './EmbedEditer';
 import { officialUrl } from './EmbedEditer';
 import { NoticeMessages } from './NoticeMessages';
 import { checkImageFormat } from '../utils';
@@ -34,11 +34,11 @@ export class EditorSwitcher {
     public constructor(
         private readonly interaction: StringSelectMenuInteraction,
         private readonly embed: EmbedEditer,
-        private readonly value: string,
+        private readonly value: ValueType,
     ) {
         if (value !== ('timestamp' || 'fields')) this.modal = this.createModal();
 
-        this.noticeMessages = new NoticeMessages(embed, value);
+        this.noticeMessages = new NoticeMessages(embed);
     }
 
     public readonly init = () => ({
@@ -56,9 +56,7 @@ export class EditorSwitcher {
                         });
 
                     this.embed.setColor(content as ColorResolvable);
-                    await this.embed.init(this.embed);
-
-                    return await this.noticeMessages.createSuccesfully(collected);
+                    return await this.embed.init(this.embed);
                 })
                 .catch(() => {});
         },
@@ -72,13 +70,11 @@ export class EditorSwitcher {
 
                     this.embed.setTitle(content);
                     await this.embed.init(this.embed);
-
-                    return await this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
-        titleURL: async (): Promise<void> => {
+        url: async (): Promise<void> => {
             await this._init();
 
             await this.createModalSubmitter()
@@ -92,9 +88,7 @@ export class EditorSwitcher {
                         });
 
                     this.embed.setURL(content);
-                    await this.embed.init(this.embed);
-
-                    return await this.noticeMessages.createSuccesfully(collected);
+                    return await this.embed.init(this.embed);
                 })
                 .catch(() => {});
         },
@@ -121,8 +115,6 @@ export class EditorSwitcher {
                         url: content_name_url,
                     });
                     await this.embed.init(this.embed);
-
-                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -136,8 +128,6 @@ export class EditorSwitcher {
 
                     this.embed.setDescription(content);
                     await this.embed.init(this.embed);
-
-                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -153,8 +143,6 @@ export class EditorSwitcher {
 
                     this.embed.setThumbnail(content);
                     await this.embed.init(this.embed);
-
-                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -180,17 +168,13 @@ export class EditorSwitcher {
 
                     this.embed.setImage(content);
                     await this.embed.init(this.embed);
-
-                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
-        timestamp: async (): Promise<InteractionResponse | Message> => {
+        timestamp: async (): Promise<void> => {
             this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
             await this.embed.init(this.embed);
-
-            return this.noticeMessages.createSuccesfully(this.interaction);
         },
 
         footer: async (): Promise<void> => {
@@ -209,8 +193,6 @@ export class EditorSwitcher {
 
                     this.embed.setFooter({ text: content_text, iconURL: content_icon_url });
                     await this.embed.init(this.embed);
-
-                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -249,7 +231,7 @@ export class EditorSwitcher {
                     ),
                 ),
 
-            titleURL: new ModalBuilder()
+            url: new ModalBuilder()
                 .setCustomId('title-url-modal')
                 .setTitle('Edit Embed Title URL')
                 .addComponents(

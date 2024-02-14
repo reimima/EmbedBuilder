@@ -1,7 +1,8 @@
-import type { StringSelectMenuInteraction } from 'discord.js';
+import type { InteractionResponse, Message, StringSelectMenuInteraction } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 
-import { EditorSwitcher, type EmbedEditer, Structure } from '../structures';
+import { EditorSwitcher, Structure } from '../structures';
+import type { EmbedEditer, ValueType } from '../structures';
 import { delayDelete } from '../utils';
 
 export class StringSelectMenuManager extends Structure {
@@ -12,7 +13,7 @@ export class StringSelectMenuManager extends Structure {
         super('StringSelectMenuManager');
     }
 
-    public readonly init = async (): Promise<void> => {
+    public readonly init = async (): Promise<InteractionResponse | Message | void> => {
         switch (this.interaction.customId) {
             case 'select-options':
                 return await this.runSelectOptions();
@@ -22,16 +23,19 @@ export class StringSelectMenuManager extends Structure {
         }
     };
 
-    private readonly runSelectOptions = async (): Promise<void> => {
-        const value = this.interaction.values[0] as string,
+    private readonly runSelectOptions = async (): Promise<InteractionResponse | Message | void> => {
+        const value = this.interaction.values[0] as ValueType,
             switcher = new EditorSwitcher(this.interaction, this.embed, value).init();
 
+        if (this.embed.modeManager.mode === 'delete' && value !== 'fields')
+            return await this.embed.deleteProperty(value, this.interaction);
+
         try {
-            await switcher[value as keyof typeof switcher]();
+            return await switcher[value as keyof typeof switcher]();
         } catch (e) {
             this.logger.error(e);
 
-            await this.embed.init(
+            return await this.embed.init(
                 new EmbedBuilder()
                     .setColor('Red')
                     .setTitle('An unexpected error has occurred')
