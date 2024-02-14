@@ -1,4 +1,5 @@
 import type {
+    APIEmbedField,
     ButtonInteraction,
     ChatInputCommandInteraction,
     InteractionResponse,
@@ -14,6 +15,7 @@ import { delayDelete } from '../utils';
 type rawType = {
     title: string;
     description: string;
+    fields?: APIEmbedField[];
 };
 
 export class NoticeMessages {
@@ -30,14 +32,16 @@ export class NoticeMessages {
                     new EmbedBuilder()
                         .setColor('Red')
                         .setTitle(raw.title)
-                        .setDescription(raw.description),
+                        .setDescription(raw.description)
+                        .setFields(raw.fields ?? []),
                 ],
             })
             .then(response => this._delayDelete([response], fields));
 
     public readonly createWarning = async (
-        collected: ModalSubmitInteraction,
+        collected: ButtonInteraction | ModalSubmitInteraction,
         raw: rawType,
+        fields?: boolean,
     ): Promise<InteractionResponse | Message> =>
         await (collected.channel as TextBasedChannel)
             .send({
@@ -48,7 +52,7 @@ export class NoticeMessages {
                         .setDescription(raw.description),
                 ],
             })
-            .then(response => this._delayDelete([response]));
+            .then(response => this._delayDelete([response], fields));
 
     private readonly _delayDelete = async (
         targets: (InteractionResponse | Message)[],

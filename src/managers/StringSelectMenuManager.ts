@@ -27,8 +27,8 @@ export class StringSelectMenuManager extends Structure {
         const value = this.interaction.values[0] as ValueType,
             switcher = new EditorSwitcher(this.interaction, this.embed, value).init();
 
-        if (this.embed.modeManager.mode === 'delete' && value !== 'fields')
-            return await this.embed.deleteProperty(value, this.interaction);
+        if (this.embed.modeManager.mode === 'remove' && value !== 'fields')
+            return await this.embed.removeProperty(value, this.interaction);
 
         try {
             return await switcher[value as keyof typeof switcher]();
@@ -45,16 +45,18 @@ export class StringSelectMenuManager extends Structure {
         }
     };
 
-    private readonly runSelectFields = async (): Promise<void> => {
-        const value = Number(this.interaction.values[0]);
+    private readonly runSelectFields = async (): Promise<InteractionResponse | Message> => {
+        const value = this.interaction.values[0];
 
-        this.embed.selecting = value;
+        if (value === '-') return await this.interaction.update({ content: null });
+
+        this.embed.selecting = Number(value);
         await this.interaction
             .reply({
-                content: `You selected number of \`${value + 1}\` field.`,
+                content: `You selected number of \`${Number(value) + 1}\` field.`,
             })
             .then(response => delayDelete([response]));
 
-        await this.embed.init(this.embed, { components: true, fields: true, change: false });
+        return await this.embed.init(this.embed, { components: true, fields: true, change: false });
     };
 }

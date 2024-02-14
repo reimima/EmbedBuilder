@@ -22,9 +22,10 @@ export class ButtonManager extends Structure {
 
         cancel: async (): Promise<Message> => await this.interaction.message.delete(),
 
-        create_mode: async () => await this.changeMode(),
-
-        delete_mode: async () => await this.changeMode(),
+        mode_change: async (): Promise<void> => {
+            await this.interaction.update({ content: null });
+            await this.embed.init(this.embed, { components: true, fields: false, change: true });
+        },
 
         increment: async (): Promise<InteractionResponse | Message> => {
             if (this.embed.fields.length >= 25)
@@ -58,6 +59,12 @@ export class ButtonManager extends Structure {
                     {
                         title: 'Impossible operation',
                         description: 'The number of fields must be 1 or more.',
+                        fields: [
+                            {
+                                name: 'Recommend',
+                                value: 'If you want to remove a field, you must select the field and press remove.',
+                            },
+                        ],
                     },
                     true,
                 );
@@ -123,6 +130,33 @@ export class ButtonManager extends Structure {
                 change: false,
             });
         },
+
+        remove: async () => {
+            if (this.embed.fields.length <= 1)
+                await this.noticeMessages.createWarning(
+                    this.interaction,
+                    {
+                        title: 'All removal mode is activated',
+                        description:
+                            'Fields is now less than 1, so fields property has been removed.',
+                    },
+                    true,
+                );
+
+            await this.interaction.update({ content: null });
+
+            this.embed.fields.splice(this.embed.selecting!, 1);
+            this.embed.setFields(this.embed.fields);
+            await this.embed.init(this.embed, { components: true, fields: true, change: false });
+        },
+
+        all_remove: async () => {
+            await this.interaction.update({ content: null });
+
+            this.embed.fields.splice(0);
+            this.embed.setFields(this.embed.fields);
+            await this.embed.init(this.embed, { components: true, fields: true, change: false });
+        },
     };
 
     private readonly noticeMessages: NoticeMessages;
@@ -151,10 +185,5 @@ export class ButtonManager extends Structure {
                 { components: false, fields: false, change: false },
             );
         }
-    };
-
-    private readonly changeMode = async (): Promise<void> => {
-        await this.interaction.update({ content: null });
-        await this.embed.init(this.embed, { components: true, fields: false, change: true });
     };
 }

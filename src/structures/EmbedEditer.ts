@@ -91,7 +91,7 @@ export class EmbedEditer extends EmbedBuilder {
                 : [],
         });
 
-    public readonly deleteProperty = async (
+    public readonly removeProperty = async (
         value: ValueType,
         interaction: StringSelectMenuInteraction,
     ): Promise<InteractionResponse | Message> => {
@@ -99,7 +99,7 @@ export class EmbedEditer extends EmbedBuilder {
             ? Object.keys(this.data).length - 1
             : Object.keys(this.data).length;
 
-        if (length < 1)
+        if (length <= 1)
             return this.noticeMessages.createInvaild(this.interaction, {
                 title: 'Unexpected operation',
                 description: "Embed elements can't be less than 1.",
@@ -192,17 +192,30 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('enabled_inline')
                 .setLabel('🔼 Enabled')
                 .setStyle(ButtonStyle.Success)
-                .setDisabled(!this.selecting),
+                .setDisabled(this.selecting === 0 ? false : !this.selecting),
 
             new ButtonBuilder()
                 .setCustomId('disabled_inline')
                 .setLabel('🔽 Disabled')
                 .setStyle(ButtonStyle.Danger)
-                .setDisabled(!this.selecting),
+                .setDisabled(this.selecting === 0 ? false : !this.selecting),
 
             new ButtonBuilder()
                 .setCustomId('disabled_all_inline')
                 .setLabel('⏬ Disabled all')
+                .setStyle(ButtonStyle.Danger),
+        ),
+
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId('remove')
+                .setLabel('🔨 Remove')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(this.selecting === 0 ? false : !this.selecting),
+
+            new ButtonBuilder()
+                .setCustomId('all_remove')
+                .setLabel('🗑️ All Remove')
                 .setStyle(ButtonStyle.Danger),
         ),
 
@@ -211,11 +224,18 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('select-fields')
                 .setPlaceholder('Number of fields')
                 .setOptions(
-                    this.fields.map((_, i) => ({
-                        label: `${i + 1}`,
-                        description: `Edit number of ${i + 1} field.`,
-                        value: `${i}`,
-                    })),
+                    this.fields.length <= 0
+                        ? [
+                              {
+                                  label: '-',
+                                  value: '-',
+                              },
+                          ]
+                        : this.fields.map((_, i) => ({
+                              label: `${i + 1}`,
+                              description: `Edit number of ${i + 1} field.`,
+                              value: `${i}`,
+                          })),
                 ),
         ),
     ];
