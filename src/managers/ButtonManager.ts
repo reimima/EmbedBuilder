@@ -44,6 +44,7 @@ export class ButtonManager extends Structure {
                 value: 'Regular field value',
             });
             this.embed.setFields(this.embed.fields);
+            this.embed.alreadlyRemove.fields = false;
 
             return await this.embed.init(this.embed, {
                 components: true,
@@ -132,7 +133,10 @@ export class ButtonManager extends Structure {
         },
 
         remove: async () => {
-            if (this.embed.fields.length <= 1)
+            if (this.embed.propLength <= 1)
+                return await this.noticeMessages.badElementRequest(this.interaction, true);
+
+            if (this.embed.fields.length <= 1) {
                 await this.noticeMessages.createWarning(
                     this.interaction,
                     {
@@ -143,19 +147,35 @@ export class ButtonManager extends Structure {
                     true,
                 );
 
+                if (!this.embed.alreadlyRemove.fields) this.updateFieldPropData();
+            }
+
             await this.interaction.update({ content: null });
 
             this.embed.fields.splice(this.embed.selecting!, 1);
             this.embed.setFields(this.embed.fields);
-            await this.embed.init(this.embed, { components: true, fields: true, change: false });
+            return await this.embed.init(this.embed, {
+                components: true,
+                fields: true,
+                change: false,
+            });
         },
 
         all_remove: async () => {
+            if (this.embed.propLength <= 1)
+                return await this.noticeMessages.badElementRequest(this.interaction, true);
+
             await this.interaction.update({ content: null });
 
             this.embed.fields.splice(0);
             this.embed.setFields(this.embed.fields);
-            await this.embed.init(this.embed, { components: true, fields: true, change: false });
+
+            if (!this.embed.alreadlyRemove.fields) this.updateFieldPropData();
+            return await this.embed.init(this.embed, {
+                components: true,
+                fields: true,
+                change: false,
+            });
         },
     };
 
@@ -185,5 +205,14 @@ export class ButtonManager extends Structure {
                 { components: false, fields: false, change: false },
             );
         }
+    };
+
+    private readonly updateFieldPropData = () => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        this.embed.data.fields = null;
+        this.embed.alreadlyRemove.fields = true;
+
+        this.embed.updatePropData();
     };
 }

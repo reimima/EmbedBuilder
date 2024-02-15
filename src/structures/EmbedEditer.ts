@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
     APIEmbedField,
     ChatInputCommandInteraction,
@@ -63,9 +64,24 @@ export class EmbedEditer extends EmbedBuilder {
 
     public readonly modeManager: EditorModeManager = new EditorModeManager();
 
-    private readonly noticeMessages: NoticeMessages = new NoticeMessages(this);
+    public readonly alreadlyRemove: { [x in ValueType]: boolean } = {
+        author: false,
+        color: false,
+        description: false,
+        fields: false,
+        footer: false,
+        image: false,
+        thumbnail: false,
+        timestamp: false,
+        title: false,
+        url: false,
+    };
 
     public selecting: number | null = null;
+
+    public propLength = 10;
+
+    private readonly noticeMessages: NoticeMessages = new NoticeMessages(this);
 
     public constructor(
         public readonly interaction: ChatInputCommandInteraction,
@@ -95,22 +111,40 @@ export class EmbedEditer extends EmbedBuilder {
         value: ValueType,
         interaction: StringSelectMenuInteraction,
     ): Promise<InteractionResponse | Message> => {
-        const length = this.data.fields
-            ? Object.keys(this.data).length - 1
-            : Object.keys(this.data).length;
+        const keys = Object.keys(this.data);
 
-        if (length <= 1)
-            return this.noticeMessages.createInvaild(this.interaction, {
-                title: 'Unexpected operation',
-                description: "Embed elements can't be less than 1.",
+        if (keys.length <= 2 && keys.includes('timestamp'))
+            return await this.noticeMessages.createInvaild(interaction, {
+                title: 'Impossible operation',
+                description:
+                    "If there are two or fewer elements and two of them contain timestamps, they can't be removed.",
             });
+        if (this.alreadlyRemove[value]) return await interaction.update({ content: null });
+        if (this.propLength <= 1) return await this.noticeMessages.badElementRequest(interaction);
 
         await interaction.update({ content: null });
+
         const data = this.data;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         data[value] = null;
+        this.alreadlyRemove[value] = true;
+
+        if (!this.data.title && this.data.url) {
+            // @ts-expect-error
+            this.data.url = null;
+            this.alreadlyRemove.url = true;
+        }
+
+        this.updatePropData();
         return await this.init(new EmbedBuilder(data));
+    };
+
+    public readonly updatePropData = () => {
+        this.propLength -= Object.values(this.data).filter(value => value === null).length;
+        Object.keys(this.data).forEach(key => {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            if (this.data[key as ValueType] === null) delete this.data[key as ValueType];
+        });
     };
 
     private readonly buildMainComponents = (

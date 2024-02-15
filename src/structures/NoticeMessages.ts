@@ -5,11 +5,12 @@ import type {
     InteractionResponse,
     Message,
     ModalSubmitInteraction,
+    StringSelectMenuInteraction,
     TextBasedChannel,
 } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 
-import type { EmbedEditer } from './EmbedEditer';
+import type { EmbedEditer, ValueType } from './EmbedEditer';
 import { delayDelete } from '../utils';
 
 type rawType = {
@@ -19,12 +20,46 @@ type rawType = {
 };
 
 export class NoticeMessages {
-    public constructor(private readonly embed: EmbedEditer) {}
+    public constructor(
+        private readonly embed: EmbedEditer,
+        private readonly value?: ValueType,
+    ) {}
+
+    public readonly badElementRequest = async (
+        interaction: ButtonInteraction | StringSelectMenuInteraction,
+        fields = false,
+    ): Promise<InteractionResponse | Message> =>
+        this.createInvaild(
+            interaction,
+            {
+                title: 'Impossible operation',
+                description: "Embed elements can't be less than 1.",
+            },
+            fields,
+        );
+
+    public readonly createSuccesfully = async (
+        collected: ModalSubmitInteraction | StringSelectMenuInteraction,
+    ): Promise<InteractionResponse | Message> =>
+        await collected
+            .reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor('Green')
+                        .setTitle('Succeeded')
+                        .setDescription(`Succesfully change embed \`${this.value}\`.`),
+                ],
+            })
+            .then(response => this._delayDelete([response]));
 
     public readonly createInvaild = async (
-        collected: ButtonInteraction | ChatInputCommandInteraction | ModalSubmitInteraction,
+        collected:
+            | ButtonInteraction
+            | ChatInputCommandInteraction
+            | ModalSubmitInteraction
+            | StringSelectMenuInteraction,
         raw: rawType,
-        fields?: boolean,
+        fields = false,
     ): Promise<InteractionResponse | Message> =>
         await collected
             .reply({
@@ -41,7 +76,7 @@ export class NoticeMessages {
     public readonly createWarning = async (
         collected: ButtonInteraction | ModalSubmitInteraction,
         raw: rawType,
-        fields?: boolean,
+        fields = false,
     ): Promise<InteractionResponse | Message> =>
         await (collected.channel as TextBasedChannel)
             .send({
@@ -56,13 +91,13 @@ export class NoticeMessages {
 
     private readonly _delayDelete = async (
         targets: (InteractionResponse | Message)[],
-        fields?: boolean,
+        _fields = false,
     ): Promise<InteractionResponse | Message> => {
         delayDelete(targets);
 
         return await this.embed.init(this.embed, {
             components: true,
-            fields: fields ?? false,
+            fields: _fields,
             change: false,
         });
     };

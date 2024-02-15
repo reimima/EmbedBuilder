@@ -10,7 +10,6 @@ import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from
 import type { EmbedEditer, ValueType } from './EmbedEditer';
 import { officialUrl } from './EmbedEditer';
 import { NoticeMessages } from './NoticeMessages';
-import { checkImageFormat } from '../utils';
 
 // eslint-disable-next-line no-useless-escape
 const urlRegx = /^https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+$/;
@@ -38,7 +37,7 @@ export class EditorSwitcher {
     ) {
         if (value !== ('timestamp' || 'fields')) this.modal = this.createModal();
 
-        this.noticeMessages = new NoticeMessages(embed);
+        this.noticeMessages = new NoticeMessages(embed, value);
     }
 
     public readonly init = () => ({
@@ -56,7 +55,9 @@ export class EditorSwitcher {
                         });
 
                     this.embed.setColor(content as ColorResolvable);
-                    return await this.embed.init(this.embed);
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -70,6 +71,8 @@ export class EditorSwitcher {
 
                     this.embed.setTitle(content);
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -88,7 +91,9 @@ export class EditorSwitcher {
                         });
 
                     this.embed.setURL(content);
-                    return await this.embed.init(this.embed);
+                    await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -115,6 +120,8 @@ export class EditorSwitcher {
                         url: content_name_url,
                     });
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -128,6 +135,8 @@ export class EditorSwitcher {
 
                     this.embed.setDescription(content);
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -143,6 +152,8 @@ export class EditorSwitcher {
 
                     this.embed.setThumbnail(content);
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -168,13 +179,17 @@ export class EditorSwitcher {
 
                     this.embed.setImage(content);
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
 
-        timestamp: async (): Promise<void> => {
+        timestamp: async (): Promise<InteractionResponse | Message> => {
             this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
             await this.embed.init(this.embed);
+
+            return this.noticeMessages.createSuccesfully(this.interaction);
         },
 
         footer: async (): Promise<void> => {
@@ -193,6 +208,8 @@ export class EditorSwitcher {
 
                     this.embed.setFooter({ text: content_text, iconURL: content_icon_url });
                     await this.embed.init(this.embed);
+
+                    return this.noticeMessages.createSuccesfully(collected);
                 })
                 .catch(() => {});
         },
@@ -369,12 +386,6 @@ export class EditorSwitcher {
             return await this.noticeMessages.createInvaild(collected, {
                 title: 'Invalid URL',
                 description: 'URL must be specified according to the rules.',
-            });
-
-        if (!checkImageFormat(content, ['png', 'jpg', 'webp', 'gif']))
-            await this.noticeMessages.createWarning(collected, {
-                title: 'Unsupported format',
-                description: "Discord doesn't support this image format.",
             });
 
         return content;
