@@ -15,10 +15,10 @@ export class StringSelectMenuManager extends Structure {
 
     public readonly init = async (): Promise<InteractionResponse | Message | void> => {
         switch (this.interaction.customId) {
-            case 'select-options':
+            case 'select_options':
                 return await this.runSelectOptions();
 
-            case 'select-fields':
+            case 'select_fields':
                 return await this.runSelectFields();
         }
     };

@@ -4,6 +4,7 @@ import type {
     ChatInputCommandInteraction,
     InteractionResponse,
     Message,
+    MessageContextMenuCommandInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js';
 import {
@@ -84,7 +85,9 @@ export class EmbedEditer extends EmbedBuilder {
     private readonly noticeMessages: NoticeMessages = new NoticeMessages(this);
 
     public constructor(
-        public readonly interaction: ChatInputCommandInteraction,
+        public readonly interaction:
+            | ChatInputCommandInteraction
+            | MessageContextMenuCommandInteraction,
         raw = defaultEmbed.setFields(fields),
     ) {
         super(raw.data);
@@ -152,7 +155,7 @@ export class EmbedEditer extends EmbedBuilder {
     ): ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] => [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId('select-options')
+                .setCustomId('select_options')
                 .setPlaceholder('Build options')
                 .setOptions(
                     { label: 'color', description: 'Set the color. (HEX)', value: 'color' },
@@ -255,7 +258,7 @@ export class EmbedEditer extends EmbedBuilder {
 
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
-                .setCustomId('select-fields')
+                .setCustomId('select_fields')
                 .setPlaceholder('Number of fields')
                 .setOptions(
                     this.fields.length <= 0
