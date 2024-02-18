@@ -44,6 +44,7 @@ export class ButtonManager extends Structure {
                 value: 'Regular field value',
             });
             this.embed.setFields(this.embed.fields);
+            this.embed.propLength += 1;
             this.embed.alreadlyRemove.fields = false;
 
             return await this.embed.init(this.embed, {

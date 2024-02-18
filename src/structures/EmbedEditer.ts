@@ -114,9 +114,7 @@ export class EmbedEditer extends EmbedBuilder {
         value: ValueType,
         interaction: StringSelectMenuInteraction,
     ): Promise<InteractionResponse | Message> => {
-        const keys = Object.keys(this.data);
-
-        if (keys.length <= 2 && keys.includes('timestamp'))
+        if (this.propLength <= 2 && Object.keys(this.data).includes('timestamp'))
             return await this.noticeMessages.createInvaild(interaction, {
                 title: 'Impossible operation',
                 description:

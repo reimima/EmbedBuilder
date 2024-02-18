@@ -32,7 +32,11 @@ export class StringSelectMenuManager extends Structure {
 
         try {
             await switcher[value as keyof typeof switcher]();
-            if (value !== 'fields') this.embed.alreadlyRemove[value] = false;
+            this.embed.propLength += 1;
+            if (value !== 'fields') {
+                this.embed.propLength += 1;
+                this.embed.alreadlyRemove[value] = false;
+            }
         } catch (e) {
             this.logger.error(e);
 
