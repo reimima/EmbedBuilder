@@ -38,6 +38,7 @@
         "@typescript-eslint/prefer-readonly": "error",
         "@typescript-eslint/prefer-regexp-exec": "error",
         "@typescript-eslint/sort-type-constituents": "error",
+        "@typescript-eslint/unbound-method": "off",
         "array-callback-return": "error",
         "eqeqeq": "error",
         "import/default": "off",

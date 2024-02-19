@@ -5,6 +5,7 @@ import log4js from 'log4js';
 import { CommandManager } from './managers';
 import type { ExEvent } from './structures';
 import { directoryName, loadModules } from './utils';
+import { Database } from '../database';
 
 config();
 
@@ -19,6 +20,8 @@ export class ExClient extends DJSClient {
     public readonly storage = {
         devGuildId: process.env['DEV_GUILD_ID'] ?? '',
     };
+
+    public readonly db: Database = new Database();
 
     public constructor() {
         super({
@@ -57,9 +60,9 @@ export class ExClient extends DJSClient {
                     `${directoryName(import.meta.url)}/events/**/*.ts`,
                 ])
             ).forEach(event =>
-                this[event.data.once ? 'once' : 'on'](event.data.name, (...args) =>
-                    event.run(...args),
-                ),
+                this[event.data.once ? 'once' : 'on'](event.data.name, async (...args) => {
+                    await event.run(...args);
+                }),
             );
             await this.commandManager.registerAll([
                 `${directoryName(import.meta.url)}/commands/**/*.ts`,

@@ -30,6 +30,7 @@
         "dotenv": "^16.4.4",
         "glob": "^10.3.10",
         "log4js": "^6.9.1",
+        "mysql2": "^3.9.1",
         "tslib": "^2.6.2"
     },
     "devDependencies": {
