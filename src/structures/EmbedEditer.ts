@@ -16,6 +16,7 @@ import {
 } from 'discord.js';
 
 import { NoticeMessages } from './NoticeMessages';
+import type { ExClient } from '../ExClient';
 import { EditorModeManager } from '../managers';
 
 export const officialUrl = 'https://discord.com';
@@ -85,6 +86,7 @@ export class EmbedEditer extends EmbedBuilder {
     private readonly noticeMessages: NoticeMessages = new NoticeMessages(this);
 
     public constructor(
+        public readonly client: ExClient,
         public readonly interaction:
             | ChatInputCommandInteraction
             | MessageContextMenuCommandInteraction,

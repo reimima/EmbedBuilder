@@ -117,7 +117,7 @@ export default class extends ExCommand {
         await response.delete();
 
         const data = new EmbedBuilder(interaction.targetMessage.embeds[value ?? 0]?.data),
-            embed = new EmbedEditer(interaction, data),
+            embed = new EmbedEditer(this.client, interaction, data),
             collector = (await embed.init(data)).createMessageComponentCollector({
                 filter: _collected =>
                     (_collected.isStringSelectMenu() || _collected.isButton()) &&

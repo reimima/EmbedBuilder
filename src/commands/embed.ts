@@ -59,7 +59,7 @@ export default class extends ExCommand {
         if (attachment)
             source = new EmbedBuilder((await (await fetch(attachment.url)).json()) as APIEmbed);
 
-        const embed = new EmbedEditer(interaction, source);
+        const embed = new EmbedEditer(this.client, interaction, source);
 
         try {
             response = await embed.init();
