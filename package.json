@@ -17,17 +17,13 @@
         "url": "https://github.com/reimima/EmbedBuilder/issues"
     },
     "scripts": {
-        "build": "node ./build.js",
-        "build:watch": "yarn build --watch",
-        "start": "node --enable-source-maps ./dist/index.js",
-        "dev": "tsx ./src/index.ts",
-        "dev:watch": "nodemon",
-        "lint": "eslint --fix . & prettier --write \"./**/*.{ts,tsx,js,json}\"",
-        "clean": "rimraf ./dist"
+        "start": "tsx ./src/index.ts",
+        "start:watch": "nodemon",
+        "lint": "eslint --fix . & prettier --write \"./**/*.{ts,tsx,js,json}\""
     },
     "dependencies": {
         "discord.js": "^14.14.1",
-        "dotenv": "^16.4.4",
+        "dotenv": "^16.4.5",
         "glob": "^10.3.10",
         "log4js": "^6.9.1",
         "mysql2": "^3.9.1",
@@ -38,7 +34,6 @@
         "@types/node": "^20.11.19",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
-        "esbuild": "^0.19.12",
         "eslint": "^8.56.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-import-resolver-typescript": "^3.6.1",
