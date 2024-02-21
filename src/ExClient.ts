@@ -49,6 +49,18 @@ export class ExClient extends DJSClient {
         });
 
         this.commandManager = new CommandManager(this);
+
+        this.db.pool.getConnection((err, conn) => {
+            conn.query(
+                'CREATE TABLE IF NOT EXISTS users (id VARCHAR(19) NOT NULL PRIMARY KEY, data MEDIUMTEXT)',
+                err => {
+                    if (err) this.logger.error(err);
+                    conn.release();
+                },
+            );
+
+            if (err) this.logger.error(err);
+        });
     }
 
     public readonly build = async (): Promise<void> => {

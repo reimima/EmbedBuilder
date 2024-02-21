@@ -108,7 +108,7 @@ export class EmbedEditer extends EmbedBuilder {
             components: options.components
                 ? options.fields
                     ? this.buildFieldComponents()
-                    : this.buildMainComponents(options.change)
+                    : await this.buildMainComponents(options.change)
                 : [],
         });
 
@@ -150,9 +150,9 @@ export class EmbedEditer extends EmbedBuilder {
         });
     };
 
-    private readonly buildMainComponents = (
+    private readonly buildMainComponents = async (
         change = false,
-    ): ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] => [
+    ): Promise<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[]> => [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
                 .setCustomId('select_options')
@@ -193,6 +193,17 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('cancel')
                 .setLabel('🗑️ Cancel')
                 .setStyle(ButtonStyle.Danger),
+
+            new ButtonBuilder()
+                .setCustomId('save')
+                .setLabel('📥 Save')
+                .setStyle(ButtonStyle.Primary),
+
+            new ButtonBuilder()
+                .setCustomId('load')
+                .setLabel('📤 Load')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(!(await this.hasSaveData())),
         ),
 
         this.modeManager.generate(change),
@@ -276,4 +287,12 @@ export class EmbedEditer extends EmbedBuilder {
                 ),
         ),
     ];
+
+    private readonly hasSaveData = async (): Promise<boolean> =>
+        !!(
+            await this.client.db.exec({
+                sql: 'SELECT * FROM users WHERE id = ?',
+                values: [this.interaction.user.id],
+            })
+        )[0];
 }

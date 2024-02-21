@@ -8,6 +8,7 @@
         "exactOptionalPropertyTypes": true,
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
+        "lib": ["ESNext"],
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "noFallthroughCasesInSwitch": true,
@@ -18,5 +19,6 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "strict": true,
-    },
+        "target": "ESNext"
+    }
 }
