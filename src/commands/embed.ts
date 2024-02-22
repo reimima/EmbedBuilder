@@ -92,7 +92,7 @@ export default class extends ExCommand {
             if (interaction.isStringSelectMenu()) {
                 await new StringSelectMenuManager(interaction, embed).init();
             } else if (interaction.isButton()) {
-                await new ButtonManager(interaction, embed, submit_type).init();
+                await new ButtonManager(this.client, interaction, embed, submit_type).init();
             }
         });
     };

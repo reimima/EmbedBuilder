@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
+    APIEmbed,
     APIEmbedField,
     ChatInputCommandInteraction,
     InteractionResponse,
@@ -148,6 +149,11 @@ export class EmbedEditer extends EmbedBuilder {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             if (this.data[key as ValueType] === null) delete this.data[key as ValueType];
         });
+    };
+
+    public readonly updateFromJson = async (data: APIEmbed): Promise<void> => {
+        Object.assign(this.data, data);
+        await this.init(this);
     };
 
     private readonly buildMainComponents = async (

@@ -1,8 +1,16 @@
 import { EmbedBuilder } from 'discord.js';
-import type { APIEmbedField, ButtonInteraction, InteractionResponse, Message } from 'discord.js';
+import type {
+    APIEmbed,
+    APIEmbedField,
+    ButtonInteraction,
+    InteractionResponse,
+    Message,
+} from 'discord.js';
 
+import type { ExClient } from '../ExClient';
 import type { EmbedEditer } from '../structures';
 import { NoticeMessages, Structure } from '../structures';
+import { delayDelete } from '../utils';
 
 export class ButtonManager extends Structure {
     private readonly switcher = {
@@ -21,6 +29,75 @@ export class ButtonManager extends Structure {
         },
 
         cancel: async (): Promise<Message> => await this.interaction.message.delete(),
+
+        save: async () => {
+            const db = this.client.db,
+                conn = await db.connection();
+
+            try {
+                const user = (
+                    await this.client.db.exec({
+                        sql: 'SELECT * FROM users WHERE id = ?',
+                        values: [this.interaction.user.id],
+                    })
+                )[0];
+
+                await db.transaction(conn);
+                if (user) {
+                    await db.query(conn, {
+                        sql: 'UPDATE users SET data = ? WHERE id = ?',
+                        values: [JSON.stringify(this.embed.data), this.interaction.user.id],
+                    });
+                } else {
+                    await db.query(conn, {
+                        sql: 'INSERT INTO users VALUES (?, ?)',
+                        values: [this.interaction.user.id, JSON.stringify(this.embed.data)],
+                    });
+                }
+                await db.commit(conn);
+            } catch (e) {
+                const _e = await db.rollback(conn);
+                if (_e) throw _e;
+                else throw e;
+            }
+
+            await this.embed.init(this.embed);
+            await this.interaction
+                .reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor('Green')
+                            .setTitle('Successfully saved')
+                            .setDescription('Successfully saved embed data.'),
+                    ],
+                })
+                .then(response => delayDelete([response]));
+        },
+
+        load: async () => {
+            const data = JSON.parse(
+                String(
+                    (
+                        await this.client.db.exec({
+                            sql: 'SELECT * FROM users WHERE id = ?',
+                            values: [this.interaction.user.id],
+                        })
+                    )[0]?.data,
+                ),
+            ) as APIEmbed;
+
+            await this.embed.updateFromJson(data);
+            await this.interaction
+                .reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor('Green')
+                            .setTitle('Successfully loaded')
+                            .setDescription('Successfully loaded embed data.'),
+                    ],
+                })
+                .then(response => delayDelete([response]));
+        },
 
         mode_change: async (): Promise<void> => {
             await this.interaction.update({ content: null });
@@ -183,6 +260,7 @@ export class ButtonManager extends Structure {
     private readonly noticeMessages: NoticeMessages;
 
     public constructor(
+        private readonly client: ExClient,
         private readonly interaction: ButtonInteraction,
         private readonly embed: EmbedEditer,
         private readonly submit_type: 'reply' | 'send',
