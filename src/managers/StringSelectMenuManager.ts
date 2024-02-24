@@ -27,15 +27,16 @@ export class StringSelectMenuManager extends Structure {
         const value = this.interaction.values[0] as ValueType,
             switcher = new EditorSwitcher(this.interaction, this.embed, value).init();
 
+        if (value !== 'fields') this.embed.selecting = value;
         if (this.embed.modeManager.mode === 'remove' && value !== 'fields')
             return await this.embed.removeProperty(value, this.interaction);
 
         try {
             await switcher[value as keyof typeof switcher]();
-            this.embed.propLength += 1;
-            if (value !== 'fields') {
-                this.embed.propLength += 1;
+            if (!['fields', 'timestamp'].includes(value)) {
+                if (this.embed.alreadlyRemove[value]) this.embed.propLength += 1;
                 this.embed.alreadlyRemove[value] = false;
+                this.embed.selecting = null;
             }
         } catch (e) {
             this.logger.error(e);
@@ -55,7 +56,7 @@ export class StringSelectMenuManager extends Structure {
 
         if (value === '-') return await this.interaction.update({ content: null });
 
-        this.embed.selecting = Number(value);
+        this.embed.selectingField = Number(value);
         await this.interaction
             .reply({
                 content: `You selected number of \`${Number(value) + 1}\` field.`,

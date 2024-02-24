@@ -121,7 +121,7 @@ export class ButtonManager extends Structure {
                 value: 'Regular field value',
             });
             this.embed.setFields(this.embed.fields);
-            this.embed.propLength += 1;
+            if (this.embed.alreadlyRemove.fields) this.embed.propLength += 1;
             this.embed.alreadlyRemove.fields = false;
 
             return await this.embed.init(this.embed, {
@@ -162,7 +162,7 @@ export class ButtonManager extends Structure {
         back: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
-            this.embed.selecting = null;
+            this.embed.selectingField = null;
             await this.embed.init(this.embed);
         },
 
@@ -180,7 +180,7 @@ export class ButtonManager extends Structure {
         enabled_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
-            (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = true;
+            (this.embed.fields[this.embed.selectingField!] as APIEmbedField).inline = true;
             await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
@@ -191,7 +191,7 @@ export class ButtonManager extends Structure {
         disabled_inline: async (): Promise<void> => {
             await this.interaction.update({ content: null });
 
-            (this.embed.fields[this.embed.selecting!] as APIEmbedField).inline = false;
+            (this.embed.fields[this.embed.selectingField!] as APIEmbedField).inline = false;
             await this.embed.init(this.embed, {
                 components: true,
                 fields: true,
@@ -211,10 +211,14 @@ export class ButtonManager extends Structure {
         },
 
         remove: async () => {
-            if (this.embed.propLength <= 1)
-                return await this.noticeMessages.badElementRequest(this.interaction, true);
-
             if (this.embed.fields.length <= 1) {
+                const verify = this.verify();
+
+                if (verify !== 0)
+                    return await this.noticeMessages.createInvaild(this.interaction, verify, true);
+                if (this.embed.propLength <= 1)
+                    return await this.noticeMessages.badElementRequest(this.interaction, true);
+
                 await this.noticeMessages.createWarning(
                     this.interaction,
                     {
@@ -230,7 +234,7 @@ export class ButtonManager extends Structure {
 
             await this.interaction.update({ content: null });
 
-            this.embed.fields.splice(this.embed.selecting!, 1);
+            this.embed.fields.splice(this.embed.selectingField!, 1);
             this.embed.setFields(this.embed.fields);
             return await this.embed.init(this.embed, {
                 components: true,
@@ -240,6 +244,10 @@ export class ButtonManager extends Structure {
         },
 
         all_remove: async () => {
+            const verify = this.verify();
+
+            if (verify !== 0)
+                return await this.noticeMessages.createInvaild(this.interaction, verify, true);
             if (this.embed.propLength <= 1)
                 return await this.noticeMessages.badElementRequest(this.interaction, true);
 
@@ -293,5 +301,35 @@ export class ButtonManager extends Structure {
         this.embed.alreadlyRemove.fields = true;
 
         this.embed.updatePropData();
+    };
+
+    private readonly verify = ():
+        | 0
+        | {
+              title: string;
+              description: string;
+          } => {
+        if (
+            this.embed.propLength === 3 &&
+            Object.keys(this.embed.data).some(value => ['color', 'timestamp'].includes(value)) &&
+            !['color', 'timestamp'].includes(String(this.embed.selecting))
+        )
+            return {
+                title: 'Impossible operation',
+                description: "Can't create an element embed with only timestamp and color.",
+            };
+        if (
+            this.embed.propLength === 2 &&
+            ((Object.keys(this.embed.data).includes('timestamp') &&
+                this.embed.selecting !== 'timestamp') ||
+                (Object.keys(this.embed.data).includes('color') &&
+                    this.embed.selecting !== 'color'))
+        )
+            return {
+                title: 'Impossible operation',
+                description: `If there are two or fewer elements and two of them contain ${Object.keys(this.embed.data).includes('timestamp') ? 'timestamp' : 'color'}, they can't be removed.`,
+            };
+
+        return 0;
     };
 }

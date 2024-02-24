@@ -186,7 +186,25 @@ export class EditorSwitcher {
         },
 
         timestamp: async (): Promise<InteractionResponse | Message> => {
-            this.embed.setTimestamp(this.embed.data.timestamp ? null : Date.now());
+            this.embed.setTimestamp(
+                this.embed.data.timestamp
+                    ? (() => {
+                          if (!this.embed.alreadlyRemove.timestamp) this.embed.propLength -= 1;
+                          this.embed.alreadlyRemove.timestamp = true;
+                          this.embed.selecting = null;
+
+                          return null;
+                      })()
+                    : (() => {
+                          if (this.embed.alreadlyRemove.timestamp) this.embed.propLength += 1;
+                          this.embed.alreadlyRemove.timestamp = false;
+                          this.embed.selecting = null;
+
+                          return Date.now();
+                      })(),
+            );
+            console.log(this.embed.alreadlyRemove);
+            console.log(this.embed.propLength);
             await this.embed.init(this.embed);
 
             return this.noticeMessages.createSuccesfully(this.interaction);
@@ -228,7 +246,6 @@ export class EditorSwitcher {
                             .setMinLength(7)
                             .setMaxLength(7)
                             .setPlaceholder('#FFFFFF')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Short),
                     ),
                 ),
@@ -243,7 +260,6 @@ export class EditorSwitcher {
                             .setLabel('Title')
                             .setMaxLength(256)
                             .setPlaceholder('Some Title')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -257,7 +273,6 @@ export class EditorSwitcher {
                             .setCustomId('title-url-modal-content')
                             .setLabel('Title URL')
                             .setPlaceholder(officialUrl)
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -272,7 +287,6 @@ export class EditorSwitcher {
                             .setLabel('Author Name')
                             .setMaxLength(256)
                             .setPlaceholder('Some name')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
 
@@ -281,7 +295,6 @@ export class EditorSwitcher {
                             .setCustomId('author-modal-content_2')
                             .setLabel('Author Icon URL')
                             .setPlaceholder('https://')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
 
@@ -290,7 +303,6 @@ export class EditorSwitcher {
                             .setCustomId('author-modal-content_3')
                             .setLabel('Author Name URL')
                             .setPlaceholder(officialUrl)
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -304,7 +316,6 @@ export class EditorSwitcher {
                             .setCustomId('description-modal-content')
                             .setLabel('Description')
                             .setPlaceholder('Some Description')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -318,7 +329,6 @@ export class EditorSwitcher {
                             .setCustomId('thumbnail-modal-content')
                             .setLabel('Thumbnail URL')
                             .setPlaceholder('https://')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -332,7 +342,6 @@ export class EditorSwitcher {
                             .setCustomId('image-modal-content')
                             .setLabel('Image URL')
                             .setPlaceholder('https://')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),
@@ -347,7 +356,6 @@ export class EditorSwitcher {
                             .setLabel('Footer Text')
                             .setMaxLength(2048)
                             .setPlaceholder('Some text')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
 
@@ -356,7 +364,6 @@ export class EditorSwitcher {
                             .setCustomId('footer-modal-content_2')
                             .setLabel('Footer Icon URL')
                             .setPlaceholder('https://')
-                            .setRequired(true)
                             .setStyle(TextInputStyle.Paragraph),
                     ),
                 ),

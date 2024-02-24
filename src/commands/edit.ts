@@ -128,7 +128,7 @@ export default class extends ExCommand {
             if (_interaction.isStringSelectMenu()) {
                 await new StringSelectMenuManager(_interaction, embed).init();
             } else if (_interaction.isButton()) {
-                await new ButtonManager(_interaction, embed, this.submit_type).init();
+                await new ButtonManager(this.client, _interaction, embed, this.submit_type).init();
             }
         });
     };
@@ -152,7 +152,9 @@ export default class extends ExCommand {
         ),
     ];
 
-    private readonly buildBaseComponents = (disable: boolean): ActionRowBuilder<ButtonBuilder>[] => [
+    private readonly buildBaseComponents = (
+        disable: boolean,
+    ): ActionRowBuilder<ButtonBuilder>[] => [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
                 .setCustomId('cancel')

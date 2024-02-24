@@ -98,7 +98,6 @@
         ],
         "yoda": "error"
     },
-    "ignorePatterns": ["dist"],
     "settings": {
         "import/resolver": {
             "typescript": {}

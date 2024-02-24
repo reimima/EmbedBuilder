@@ -80,7 +80,9 @@ export class EmbedEditer extends EmbedBuilder {
         url: false,
     };
 
-    public selecting: number | null = null;
+    public selecting: Omit<ValueType, 'fields'> | null = null;
+
+    public selectingField: number | null = null;
 
     public propLength = 10;
 
@@ -117,11 +119,34 @@ export class EmbedEditer extends EmbedBuilder {
         value: ValueType,
         interaction: StringSelectMenuInteraction,
     ): Promise<InteractionResponse | Message> => {
-        if (this.propLength <= 2 && Object.keys(this.data).includes('timestamp'))
+        if (
+            this.propLength === 3 &&
+            this.isEqualArray(
+                [
+                    ...new Set(
+                        [...Object.keys(this.data), ...['timestamp', 'color']].filter(
+                            value =>
+                                Object.keys(this.data).includes(value) &&
+                                ['timestamp', 'color'].includes(value),
+                        ),
+                    ),
+                ],
+                ['timestamp', 'color'],
+            ) &&
+            (this.selecting !== 'timestamp' || this.selecting !== 'color')
+        )
             return await this.noticeMessages.createInvaild(interaction, {
                 title: 'Impossible operation',
-                description:
-                    "If there are two or fewer elements and two of them contain timestamps, they can't be removed.",
+                description: "Can't create an element embed with only timestamp and color.",
+            });
+        if (
+            this.propLength === 2 &&
+            ((Object.keys(this.data).includes('timestamp') && this.selecting !== 'timestamp') ||
+                (Object.keys(this.data).includes('color') && this.selecting !== 'color'))
+        )
+            return await this.noticeMessages.createInvaild(interaction, {
+                title: 'Impossible operation',
+                description: `If there are two or fewer elements and two of them contain ${Object.keys(this.data).includes('timestamp') ? 'timestamp' : 'color'}, they can't be removed.`,
             });
         if (this.alreadlyRemove[value]) return await interaction.update({ content: null });
         if (this.propLength <= 1) return await this.noticeMessages.badElementRequest(interaction);
@@ -246,13 +271,13 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('enabled_inline')
                 .setLabel('🔼 Enabled')
                 .setStyle(ButtonStyle.Success)
-                .setDisabled(this.selecting === 0 ? false : !this.selecting),
+                .setDisabled(this.selectingField === 0 ? false : !this.selectingField),
 
             new ButtonBuilder()
                 .setCustomId('disabled_inline')
                 .setLabel('🔽 Disabled')
                 .setStyle(ButtonStyle.Danger)
-                .setDisabled(this.selecting === 0 ? false : !this.selecting),
+                .setDisabled(this.selectingField === 0 ? false : !this.selectingField),
 
             new ButtonBuilder()
                 .setCustomId('disabled_all_inline')
@@ -265,7 +290,7 @@ export class EmbedEditer extends EmbedBuilder {
                 .setCustomId('remove')
                 .setLabel('🔨 Remove')
                 .setStyle(ButtonStyle.Secondary)
-                .setDisabled(this.selecting === 0 ? false : !this.selecting),
+                .setDisabled(this.selectingField === 0 ? false : !this.selectingField),
 
             new ButtonBuilder()
                 .setCustomId('all_remove')
@@ -301,4 +326,15 @@ export class EmbedEditer extends EmbedBuilder {
                 values: [this.interaction.user.id],
             })
         )[0];
+
+    private readonly isEqualArray = (array1: string[], array2: string[]) => {
+        let i = array1.length;
+
+        if (i !== array2.length) return false;
+        while (i--) {
+            if (array1[i] !== array2[i]) return false;
+        }
+
+        return true;
+    };
 }
