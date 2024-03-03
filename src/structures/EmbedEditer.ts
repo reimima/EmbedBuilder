@@ -181,6 +181,17 @@ export class EmbedEditer extends EmbedBuilder {
         await this.init(this);
     };
 
+    public readonly isEqualArray = (array1: string[], array2: string[]) => {
+        let i = array1.length;
+
+        if (i !== array2.length) return false;
+        while (i--) {
+            if (array1[i] !== array2[i]) return false;
+        }
+
+        return true;
+    };
+
     private readonly buildMainComponents = async (
         change = false,
     ): Promise<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[]> => [
@@ -326,15 +337,4 @@ export class EmbedEditer extends EmbedBuilder {
                 values: [this.interaction.user.id],
             })
         )[0];
-
-    private readonly isEqualArray = (array1: string[], array2: string[]) => {
-        let i = array1.length;
-
-        if (i !== array2.length) return false;
-        while (i--) {
-            if (array1[i] !== array2[i]) return false;
-        }
-
-        return true;
-    };
 }

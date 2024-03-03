@@ -43,10 +43,4 @@ pids
 # pnpm
 pnpm-lock.yaml
 
-# build
-dist
-
-# test
-test
-
 # End of https://www.toptal.com/developers/gitignore/api/node

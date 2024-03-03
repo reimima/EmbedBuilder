@@ -97,10 +97,5 @@
             }
         ],
         "yoda": "error"
-    },
-    "settings": {
-        "import/resolver": {
-            "typescript": {}
-        }
     }
 }

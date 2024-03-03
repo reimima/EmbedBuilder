@@ -311,8 +311,19 @@ export class ButtonManager extends Structure {
           } => {
         if (
             this.embed.propLength === 3 &&
-            Object.keys(this.embed.data).some(value => ['color', 'timestamp'].includes(value)) &&
-            !['color', 'timestamp'].includes(String(this.embed.selecting))
+            this.embed.isEqualArray(
+                [
+                    ...new Set(
+                        [...Object.keys(this.embed.data), ...['timestamp', 'color']].filter(
+                            value =>
+                                Object.keys(this.embed.data).includes(value) &&
+                                ['timestamp', 'color'].includes(value),
+                        ),
+                    ),
+                ],
+                ['timestamp', 'color'],
+            ) &&
+            (this.embed.selecting !== 'timestamp' || this.embed.selecting !== 'color')
         )
             return {
                 title: 'Impossible operation',

@@ -2,7 +2,6 @@
     "$schema": "https://json.schemastore.org/nodemon.json",
     "exec": "pnpm start",
     "ext": "ts",
-    "ignore": ["dist"],
     "restartable": "rs",
     "watch": ["src"]
 }
