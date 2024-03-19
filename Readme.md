@@ -36,4 +36,4 @@ $ pnpm lint
 
 いつかweb上からでも作成できるようにしたいです()
 
-あとこの子、`footer` や `thumbnail` みたいに埋め込みの要素単位では削除できますが、 `footer` 内の `icon` や `text` 単位では削除できません()
+あとこの子、`footer` や `thumbnail` みたいに埋め込みの要素単位では削除できますが `footer` 内の `icon` や `text` 単位では削除できません()
